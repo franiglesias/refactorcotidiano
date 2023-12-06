@@ -1,4 +1,4 @@
-# Mejorando los nombres
+# El nombre de la cosa
 
 El segundo capítulo de la guía del refactor cotidiano trata de los nombres y cómo mejorarlos. Probablemente en ningún lugar como el código los nombres configuran la realidad. Escribir código implica establecer decenas de nombres cada día, para identificar conceptos y procesos. Una mala elección de nombre puede condicionar nuestra forma de ver un problema de negocio. Un nombre ambiguo puede llevarnos a entrar en un callejón sin salida, ahora o en un futuro no muy lejano. Pero un nombre bien escogido puede ahorrarnos tiempo, dinero y dificultades.
 
