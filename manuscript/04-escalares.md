@@ -1,30 +1,32 @@
-# Sustituye escalares por objetos
+# Deja atrás lo primitivo
 
-PHP viene de serie con un conjunto de tipos de datos básicos que denominamos escalares: bool, int, float, string…, que utilizamos para representar cosas y operar con ellas. La parte mala es que son tipos genéricos y, a veces, necesitaríamos algo con más significado.
+Todos los lenguajes de programación vienen de serie con un conjunto de tipos de datos básicos que denominamos primitivos (y en algún caso escalares, cuando no son objetos): boolean, int, float, string…, que utilizamos para representar cosas y operar con ellas. La parte mala es que son tipos genéricos y, a veces, necesitaríamos algo con más significado.
 
-Lo ideal sería poder crear nuestros propios tipos, aptos para el dominio en el que estemos trabajando e incluyendo sus propias restricciones y propiedades. Además, podrían encapsular las operaciones que les sean necesarias. ¿Te suena el concepto? Estamos hablando de **Value Object**.
+Lo ideal sería poder crear nuestros propios tipos, aptos para el dominio en el que estemos trabajando e incluyendo sus propias restricciones y propiedades. Además, podrían encapsular las operaciones que les sean necesarias. ¿Te suena el concepto? Estamos hablando de **value objects**.
 
-Los Value Objects son objetos que representan algún concepto importante en el dominio. Ya hemos hablado un montón de veces de ellos en el blog, por lo que simplemente haré un resumen. Puedes encontrar más detalles y ejemplos en este [artículo de Dani Tomé](https://danitome24.github.io/2018-11-19/usando-value-objects-con-php).
+Los _value objects_ son objetos que representan algún concepto importante en el dominio. Ya hemos hablado un montón de veces de ellos en el blog, por lo que simplemente haré un resumen. Puedes encontrar más detalles y ejemplos en este [artículo de Dani Tomé](https://danitome24.github.io/2018-11-19/usando-value-objects-con-php).
 
-En resumen, los Value Objects:
+En resumen, los _value objects_:
 
 * Representan conceptos importantes o interesantes del dominio, entendido como el dominio de conocimiento que toca el código que estamos implementando o estudiando.
 * Siempre son creados consistentes, de modo que si obtienes una instancia puedes tener la seguridad de que es válida. De otro modo, no se crean y se lanza una excepción.
 * Los objetos nos interesan por su valor, no por su identidad, por lo que tienen que tener alguna forma de chequear esa igualdad.
 * Son inmutables, o sea, su valor no puede cambiar durante su ciclo de vida. En caso de que tengan métodos *mutators*, estos devolverán una nueva instancia de la clase con el valor modificado.
-* Encapsulan comportamientos. Los buenos Value Objects atraen y encapsulan comportamientos que pueden ser utilizados por el resto del código.
+* Encapsulan comportamientos. Los buenos _value objects_ atraen y encapsulan comportamientos que pueden ser utilizados por el resto del código.
 
-Los Value Objects pueden ser genéricos y reutilizables, como Money, o muy específicos de un dominio.
+Los _value objects_ pueden ser genéricos y reutilizables, como `Money`, o muy específicos de un dominio.
 
-## Refactorizar a Value Objects
+Una aclaración que me gustaría hacer es _value object_ es uno de los bloques de construcción en Domain Driven Design, pero el patrón de encapsular valores primitivos en objetos lo podemos (y debemos) aplicar a                  
 
-Refactorizar a Value Objects puede ser una tarea de bastante calado, ya que implica crear nuevas clases y utilizarlas en diversos puntos del código. Ahora bien, este proceso puede hacerse de forma bastante gradual. Ten en cuenta que:
+## Refactorizar a _value objects_
 
-* Los Value Objects no tienen dependencias, para crearlos solo necesitas tipos escalares u otros Value Objects.
-* Los Value Objects se pueden instanciar allí donde los necesites, son *newables*.
-* Normalmente, tendrás métodos para convertir los Value Objects a escalares, de modo que puedas utilizar sus valores con código que no puedes modificar.
+Refactorizar a _value objects_ puede ser una tarea de bastante calado, ya que implica crear nuevas clases y utilizarlas en diversos puntos del código. Ahora bien, este proceso puede hacerse de forma bastante gradual. Ten en cuenta que:
 
-Los Value Objects aportan varias ventajas:
+* Los _value objects_ no tienen dependencias, para crearlos solo necesitas tipos escalares o bien otros _value objects_.
+* Los _value objects_ se pueden instanciar allí donde los necesites, son *newables*.
+* Normalmente, tendrás métodos para convertir los _value objects_ a escalares, de modo que puedas utilizar sus valores con código que no puedes modificar.
+
+Los _value objects_ aportan varias ventajas:
 
 * Al encapsular su validación tendrás objetos con valores adecuados que puedes usar libremente sin necesidad de validar constantemente.
 * Aportarán significado a tu código, siempre sabrás cuando una variable es un precio, un email, una edad, lo que necesites.
@@ -32,7 +34,7 @@ Los Value Objects aportan varias ventajas:
 
 ### Propiedades múltiples para un solo concepto
 
-Veamos un objeto típico de cualquier negocio: `Customer` que da lugar a varios ejemplos clásicos de Value Object. Un cliente siempre suele tener un nombre, que acostumbra a ser una combinación de nombre de pila y uno o más apellidos. También tiene una dirección, que es una combinación de unos cuantos datos.
+Veamos un objeto típico de cualquier negocio: `Customer` que da lugar a varios ejemplos clásicos de _value object_. Un cliente siempre suele tener un nombre, que acostumbra a ser una combinación de nombre de pila y uno o más apellidos. También tiene una dirección, que es una combinación de unos cuantos datos.
 
 ```php
 class Customer
@@ -115,7 +117,7 @@ class Customer
 
 Solemos decir que las cosas que cambian juntas deben ir juntas, pero eso también implica que las cosas que no cambian juntas deberían estar separadas. En el constructor van todos los detalles mezclados y se hace muy difícil de manejar.
 
-Yo no sé a ti pero a mí esto me pide un builder:
+Yo no sé a ti pero a mí esto me pide un _builder_:
 
 ```php
 class CustomerBuilder
@@ -166,7 +168,7 @@ class CustomerBuilder
 }
 ```
 
-Builder que podríamos usar así:
+_Builder_ que podríamos usar así:
 
 ```php
 $customerBuilder = new CustomerBuilder();
@@ -177,11 +179,11 @@ $customer = $customerBuilder
     ->build();
 ```
 
-Gracias a usar el Builder podemos ver que hay, al menos, dos conceptos: el nombre del cliente y su dirección. De hecho, en la dirección tendríamos también dos conceptos: la localidad y las señas dentro de esa localidad.
+Gracias a usar el _builder_ podemos ver que hay, al menos, dos conceptos: el nombre del cliente y su dirección. De hecho, en la dirección tendríamos también dos conceptos: la localidad y las señas dentro de esa localidad.
 
 Vamos por partes:
 
-### Value Object simple
+### _Value object_ simple
 
 Parece que no, pero manejamos mucha lógica en algo tan simple como un nombre. Veamos por ejemplo:
 
@@ -189,9 +191,9 @@ Parece que no, pero manejamos mucha lógica en algo tan simple como un nombre. V
 * A veces necesitamos usar partes del nombre por separado, como sería el nombre de pila ("Estimada Susana", "Sr. Pérez"). Otras veces queremos combinarlo de diferentes formas, como podría ser poner el apellido primero, lo que es útil para listados.
 * Y, ¿qué pasa si queremos introducir nueva información relacionada con el nombre? Por ejemplo, el tratamiento (Sr./Sra., Estimado/Estimada, etc.).
 
-El nombre del cliente se puede convertir fácilmente a un Value Object, lo que retirará cualquier lógica de la "gestión" del nombre de la clase `Customer`, contribuyendo al Single Responsibility Principle y proporcionándonos un comportamiento reutilizable.
+El nombre del cliente se puede convertir fácilmente a un _value object_, lo que retirará cualquier lógica de la "gestión" del nombre de la clase `Customer`, contribuyendo al Single Responsibility Principle y proporcionándonos un comportamiento reutilizable.
 
-Así que podemos crear un Value Object sencillo:
+Así que podemos crear un _value object_ sencillo:
 
 ```php
 class PersonName
@@ -241,13 +243,13 @@ class PersonName
 }
 ```
 
-Más adelante volveremos sobre este objeto. Ahora vamos a definir varios Value Objects. De momento, solo me voy a concentrar en los constructores, sin añadir ningún comportamiento, ni siquiera el método `equals` ya que quiere centrarme en cómo movernos de usar escalares a estos objetos.
+Más adelante volveremos sobre este objeto. Ahora vamos a definir varios _value objects_. De momento, solo me voy a concentrar en los constructores, sin añadir ningún comportamiento, ni siquiera el método `equals` ya que quiere centrarme en cómo movernos de usar escalares a estos objetos.
 
-### Value Object Compuesto
+### _value object_ Compuesto
 
 Para crear el VO `Address` haremos algo parecido y crearemos una clase `Address` para representar las direcciones de los clientes.
 
-Sin embargo, hemos dicho que podríamos crear un Value Object en torno al concepto de localidad o código postal, que incluiría el código postal y la ciudad. Obviamente, esto dependerá de nuestro dominio. En algunos casos no nos hará falta esa granularidad porque simplemente queremos disponer de una dirección postal de nuestros clientes para enviar comunicaciones. Pero en otros casos puede ocurrir que nuestro negocio tenga aspectos que dependan de ese concepto, como un servicio cuya tarifa sea función de la ubicación.
+Sin embargo, hemos dicho que podríamos crear un _value object_ en torno al concepto de localidad o código postal, que incluiría el código postal y la ciudad. Obviamente, esto dependerá de nuestro dominio. En algunos casos no nos hará falta esa granularidad porque simplemente queremos disponer de una dirección postal de nuestros clientes para enviar comunicaciones. Pero en otros casos puede ocurrir que nuestro negocio tenga aspectos que dependan de ese concepto, como un servicio cuya tarifa sea función de la ubicación.
 
 ```php
 class Locality
@@ -364,7 +366,7 @@ class Address
 
 Puesto que `Locality` es un VO no es necesario validarla. Además, aquí no necesitamos saber cómo se construye por lo que nos daría igual si hemos optado por un diseño u otro de la clase, ya que la vamos a recibir construida y `Address` puede confiar en que funcionará como es debido. 
 
-Siempre que un objeto requiere muchos parámetros en su construcción puede ser interesante plantearse si tenemos buenas razones para organizarlos en forma de Value Objects, aplicando el principio de co-variación: si cambian juntos, deberían ir juntos. En este caso, `$street`, `$streetNumber` y `$floor` pueden ir juntos, en forma de `StreetAddress` porque entre los tres componen un concepto útil.
+Siempre que un objeto requiere muchos parámetros en su construcción puede ser interesante plantearse si tenemos buenas razones para organizarlos en forma de _value objects_, aplicando el principio de co-variación: si cambian juntos, deberían ir juntos. En este caso, `$street`, `$streetNumber` y `$floor` pueden ir juntos, en forma de `StreetAddress` porque entre los tres componen un concepto útil.
 
 ```php
 class StreetAddress
@@ -408,9 +410,9 @@ class Address
 
 En resumidas cuentas, a medida que reflexionamos sobre los conceptos del dominio podemos percibir la necesidad de trasladar esa reflexión al código de una forma más articulada y precisa. Pero como hemos señalado antes todo depende de las necesidades de nuestro dominio. Lo cierto es que, como veremos a lo largo del artículo, cuanto más articulado tengamos el dominio, vamos a tener más capacidad de maniobra y muchísima más coherencia.
 
-### Introduciendo los Value Objects
+### Introduciendo los _value objects_
 
-Volvamos a `Customer`. De momento, el hecho de introducir una serie de Value Objects no afecta para nada al código que tengamos, por lo que podríamos estar creando cada uno de los VO, haciendo *commits*, mezclando en master y desplegando sin afectar de ningún modo a la funcionalidad existente. Simplemente, hemos añadido clases a nuestra base de código y ahí están: esperando a ser utilizadas.
+Volvamos a `Customer`. De momento, el hecho de introducir una serie de _value objects_ no afecta para nada al código que tengamos, por lo que podríamos estar creando cada uno de los VO, haciendo *commits*, mezclando en master y desplegando sin afectar de ningún modo a la funcionalidad existente. Simplemente, hemos añadido clases a nuestra base de código y ahí están: esperando a ser utilizadas.
 
 En este caso, tener a `CustomerBuilder` nos viene muy bien pues encapsula la compleja construcción de Customer, aislándola del resto del código. Podremos refactorizar `Customer` sin afectar a nadie. Empezaremos por el nombre:
 
@@ -499,7 +501,7 @@ class PersonName
 }
 ```
 
-Es por esto que decimos que los Value Objects "atraen" comportamientos, ya que cualquier cosa que las clases usuarias necesiten puede encapsularse en el propio VO. Si necesitásemos el nombre en un formato apto para listas podríamos hacer lo siguiente:
+Es por esto que decimos que los _value objects_ "atraen" comportamientos, ya que cualquier cosa que las clases usuarias necesiten puede encapsularse en el propio VO. Si necesitásemos el nombre en un formato apto para listas podríamos hacer lo siguiente:
 
 ```php
 class PersonName implements PersonNameInterface
@@ -801,9 +803,9 @@ El beneficio más evidente es que las clases importantes del dominio como `Custo
 
 Por otro lado, todo lo que tiene que ver con ellos, `Customer` se lo delega. Dicho de otro modo, `Customer` no tiene que saber cómo se da formato a un nombre o a una dirección. Simplemente, cuando se lo piden entrega el nombre o la dirección formateados. Asimismo, cualquier otro objeto que usase `PersonName` o `Address`, lo hará de la misma manera.
 
-Otra cosa interesante es que los cambios que necesitemos en el comportamiento de estas propiedades pueden aplicarse sin tocar el código de la clase, modificando los Value Objects, con lo cual el nuevo comportamiento se extenderá a todas las partes de la aplicación que lo utilicen.
+Otra cosa interesante es que los cambios que necesitemos en el comportamiento de estas propiedades pueden aplicarse sin tocar el código de la clase, modificando los _value objects_, con lo cual el nuevo comportamiento se extenderá a todas las partes de la aplicación que lo utilicen.
 
-## Introduciendo nuevas features a través de los Value Objects
+## Introduciendo nuevas features a través de los _value objects_
 
 Vamos a ver cómo la nueva situación en la que nos deja el refactor nos facilita la vida en el futuro. Imaginemos que tenemos que añadir una nueva feature en la aplicación.
 
@@ -820,7 +822,7 @@ public function treatment(): string
 }
 ```
 
-Primero queremos un nuevo Value Object, que será Gender:
+Primero queremos un nuevo _value object_, que será Gender:
 
 ```php
 class Gender
@@ -857,19 +859,14 @@ class Gender
 }
 ```
 
-Este tipo de Value Object será un Enumerable. Representa conceptos que tienen un número limitado (numerable) de valores. PHP, de momento, no tiene una implementación propia como otros lenguajes, por lo que podemos simularla de este modo.
-
-El siguiente paso es hacer que la clase PersonName implemente una interfaz PersonNameInterface:
+Este tipo de _value object_ será un _enumerable_. Representa conceptos que tienen un número limitado (numerable) de valores. El siguiente paso es hacer que la clase `PersonName` implemente una interfaz `PersonNameInterface`:
 
 ```php
 interface PersonNameInterface
 {
     public function fullName() : string;
-
     public function listName() : string;
-
     public function surname() : string;
-    
     public function treatment(): string;
 }
 ```
@@ -879,11 +876,9 @@ Y hacemos que Customer la utilice. Es un cambio pequeño, que nos permitirá usa
 ```php
 class Customer
 {
-    private $id;
-    /** @var PersonNameInterface */
-    private $personName;
-    /** @var Address */
-    private $address;
+    private string $id;
+    private PersonNameInterface $personName;
+    private Address $address;
 
     public function __construct(
         string $id,
@@ -917,10 +912,8 @@ Ahora, crearemos un tipo de `PersonName` que sepa algo acerca del género del no
 ```php
 class GenderMarkedPersonName implements PersonNameInterface
 {
-    /** @var Gender */
-    private $gender;
-    /** @var PersonName */
-    private $personName;
+    private Gender $gender;
+    private PersonName $personName;
 
     public function __construct(Gender $gender, PersonName $personName)
     {
@@ -955,9 +948,9 @@ Y ahora, el último cambio, en el Builder usaremos la nueva implementación:
 ```php
 class CustomerBuilder
 {
-    private $personName;
-    private $address;
-    private $gender;
+    private PersonName $personName;
+    private Address $address;
+    private Gender $gender;
 
     public function withName(string $name, string $firstSurname, ?string $lastSurname) : self
     {
