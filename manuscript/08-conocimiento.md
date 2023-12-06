@@ -1,6 +1,6 @@
 # Dónde poner el conocimiento
 
-En anteriores entregas hemos propuesto refactorizar código a Value Objects o aplicar principios como la *ley de Demeter* o *Tell, don't ask* para mover código a un lugar más adecuado. En este capítulo vamos a analizarlo desde un punto de vista más general.
+En anteriores capítulos hemos propuesto refactorizar código a Value Objects o aplicar principios como la *ley de Demeter* o *Tell, don't ask* para mover código a un lugar más adecuado. En este capítulo vamos a analizarlo desde un punto de vista más general.
 
 Solemos decir que refactorizar tiene que ver con el **conocimiento** y el **significado**. Fundamentalmente, porque lo que hacemos es aportar significado al código con el objetivo de que este represente de una manera fiel y dinámica el conocimiento cambiante que tenemos del negocio del que nos ocupamos.
 
@@ -32,11 +32,13 @@ Los principios que hemos enunciado se centran en el carácter único de la repre
 
 ### En los objetos a los que pertenece
 
-El principio *Tell, don't ask* nos proporciona una primera pista: el conocimiento que afecta solo a un objeto debería estar en el propio objeto. Esto es, en lugar de obtener información de un objeto para operar con ella y tomar una decisión sobre ese objeto, le pedimos que lo haga él mismo y nos entregue el resultado si es preciso.
+El patrón GRASP _Information Expert_ nos viene perfecto aquí. Este patrón nos dice que un objeto debería ser la fuente de verdad de todo lo que tiene que ver consigo mismo. Expresándolo en otras palabras, quiere decir que un objeto debe ser capaz de realizar todos los comportamientos que le sean propios, dentro del contexto de nuestra aplicación. Para ello no debería necesitar exponer sus propiedades internas o estado.
 
-En ese sentido, los *Value Objects*, de los que hemos hablado tantas veces, son lugares ideales para encapsular conocimiento. Veamos un ejemplo:
+Por tanto, cuando preguntamos a un objeto sobre su estado y realizamos acciones basadas en la respuesta, lo suyo debería ser encapsular esas acciones en forma de comportamientos del objeto. Para ello, podemos seguir el principio *Tell, don't ask*. Esto es, en lugar de obtener información de un objeto para operar con ella y tomar una decisión sobre ese objeto, le pedimos que lo haga él mismo y nos entregue un resultado si es adecuado para el contexto.
 
-Supongamos que en nuestro negocio estamos interesados en ofrecer ciertos productos o ventajas a usuarios cuya cuenta de correo pertenezca a ciertos dominios. Por tanto, el correo electrónico es un concepto importante del negocio y lo representamos mediante un Value Object:
+En ese sentido, los *value objects* y *entidades*, de los que hemos hablado tantas veces, son lugares ideales para encapsular conocimiento. Veamos un ejemplo:
+
+Supongamos que en nuestro negocio estamos interesados en ofrecer ciertos productos o ventajas a usuarios cuya cuenta de correo pertenezca a ciertos dominios, por ejemplo perteneciente a su cuenta corporativa. El correo electrónico es, pues, un concepto importante del negocio y lo representamos mediante un _value object_:
 
 ```php
 <?php
@@ -48,16 +50,19 @@ use InvalidArgumentException;
 
 class Email
 {
-    /** @var string */
-    private $email;
+    private string $email;
 
     public function __construct(string $email)
+    {
+        $this->email = $email;
+    }
+    
+    public static function valid(string $email)
     {
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException(sprintf('%s is not valid email.', $email));
         }
-
-        $this->email = $email;
+        return new self($email)
     }
 
     public function value(): string
@@ -93,9 +98,10 @@ class OfferPromotion
 }
 ```
 
-El problema aquí es que el servicio tiene que ocuparse de obtener el dominio de la dirección de correo, cosa que no tendría que ser de su incumbencia. Pero la clase Email nos está pidiendo a gritos convertirse en la experta de calcular la parte del dominio del correo:
+El problema aquí es que el servicio tiene que ocuparse de obtener el dominio de la dirección de correo, cosa que no tendría que ser de su incumbencia. La clase `Email` nos está pidiendo a gritos convertirse en la experta en calcular la parte del dominio del correo:
 
-```php
+```injectablephp
+<?php
 <?php
 declare(strict_types=1);
 
@@ -105,16 +111,26 @@ use InvalidArgumentException;
 
 class Email
 {
-    /** @var string */
-    private $email;
+    private string $email;
 
     public function __construct(string $email)
+    {
+        $this->email = $email;
+    }
+    
+    public static function valid(string $email)
     {
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException(sprintf('%s is not valid email.', $email));
         }
+        return new self($email)
+    }
 
-        $this->email = $email;
+    public function domain(): string
+    {
+        [, $domain] = explode('@', $this->email);
+
+        return $domain;
     }
 
     public function value(): string
@@ -126,19 +142,12 @@ class Email
     {
         return $this->value();
     }
-
-    public function domain(): string
-    {
-        [, $domain] = explode('@', $this->email);
-
-        return $domain;
-    }
 }
 ```
 
-Lo que hace más expresivo nuestro servicio:
+Nos basta con esto para hacer más expresivo nuestro servicio, pero aún podemos hacerlo mejor:
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -157,15 +166,15 @@ class OfferPromotion
 }
 ```
 
-### Reglas de negocio como Specification
+### Reglas de negocio como _Specification_
 
 El ejemplo anterior es una primera aproximación a cómo mover el conocimiento. En este caso no se trata tanto de la regla de negocio como de un requisito para poder implementarla.
 
-Podríamos decir que la regla de negocio implica distintos conocimientos. En términos de negocio nuestro ejemplo se enunciaría como "todos los clientes cuyo dominio de correo esté incluido en la lista tienen derecho a tal ventaja cuando realicen tal acción". Técnicamente implica saber sobre usuarios y sus emails, y saber extraer su dominio de correo para saber si está incluido en tal lista.
+Podríamos decir que la regla de negocio implica distintos conocimientos. En términos de negocio nuestro ejemplo se enunciaría como "todos los clientes cuyo dominio de correo esté incluido en la lista tienen derecho a tal ventaja cuando realicen tal acción". Técnicamente, implica saber sobre usuarios y sus emails, y saber extraer su dominio de correo para saber si está incluido en tal lista.
 
 Desde el punto de vista del negocio la regla relaciona clientes, seleccionados por una característica, con una ventaja que les vamos a otorgar.
 
-Ese conocimiento se puede encapsular en una **Specification**, que no es más que un objeto que puede decidir si otro objeto cumple una serie de condiciones.
+Ese conocimiento se puede encapsular en una **Specification**, que no es más que un objeto que puede decidir si otro objeto cumple una serie de condiciones. El objeto en que estamos interesadas es `Customer` y para el contexto de esta regla, nos interesa poder preguntarle por su dominio de correo.
 
 ```php
 <?php
@@ -173,7 +182,7 @@ declare(strict_types=1);
 
 namespace App\Domain;
 
-class HasDomainEligibleForPromotion
+class BelongsToDomainEligibleForPromotion
 {
     public $domains = [
         'example.com',
@@ -182,7 +191,11 @@ class HasDomainEligibleForPromotion
     
     public function isSatisfiedBy(Customer $customer): bool
     {
-        if (in_array($customer->email(), $this->domains, true)) {
+        return $this->isEmailEligibleForPromotion($customer->email());
+    }
+    
+    private function isEmailEligibleForPromotion($domain) {
+        if (in_array($email->domain(), $this->domains, true)) {
             return true;
         }
         
@@ -193,7 +206,7 @@ class HasDomainEligibleForPromotion
 
 Ahora el conocimiento de la regla de negocio se encuentra en un solo lugar y lo puedes reutilizar allí donde lo necesites[^fn-spec]
 
-[^fn-spec]: Una objeción que se puede poner a este código es que instanciamos la Specification. Normalmente lo mejor sería inyectar en el servicio una factoría de Specification para pedirle las que necesitemos y que sea la factoría la que gestione sus posibles dependencias.
+[^fn-spec]: Una objeción que se puede poner a este código es que instanciamos la _Specification_. Normalmente, lo mejor sería inyectar en el servicio una factoría de _Specification_ para pedirle las que necesitemos y que sea la factoría la que gestione sus posibles dependencias.
 
 ```php
 <?php
@@ -205,7 +218,7 @@ class OfferPromotion
 {
     public function applyTo(Order $order)
     {
-        $eligibleForPromotion = new HasDomainEligibleForPromotion();
+        $eligibleForPromotion = new BelongsToDomainEligibleForPromotion();
         
         if ($eligibleForPromotion->isSatisfiedBy($order->customer())) {
             $order->applyPromotion($this);
@@ -216,6 +229,6 @@ class OfferPromotion
 
 No solo eso, sino que incluso nos permite escribir mejor el servicio al expresar las relaciones correctas: en este caso la regla de negocio se basa en una propiedad de los clientes y no de los pedidos, aunque luego se aplique el resultado a los pedidos o al cálculo de su importe.
 
-Sobre el patrón Specification puedes encontrar [más información en este artículo](https://franiglesias.github.io/patron-specification-del-dominio-a-la-infraestructura-1/)
+Sobre el patrón _Specification_ puedes encontrar [más información en este artículo](https://franiglesias.github.io/patron-specification-del-dominio-a-la-infraestructura-1/)
 
 

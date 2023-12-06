@@ -38,7 +38,7 @@ Mejor, ¿no? Veamos por qué.
 
 En el dominio de las figuras geométricas planas, el área o superficie es una propiedad que tienen todas ellas y que, a su vez, depende de otras que son su base y su altura, que en el caso del cuadrado coinciden. La función para determinar el área ocupada por una figura plana depende de cada figura específica.
 
-Posiblemente estés de acuerdo en que al modelar este comportamiento lo pondríamos en la clase de cada figura desde el primer momento, lo que seguramente nos llevaría a una interfaz.
+Posiblemente, estés de acuerdo en que al modelar este comportamiento lo pondríamos en la clase de cada figura desde el primer momento, lo que seguramente nos llevaría a una interfaz.
 
 ```php
 interface TwoDimensionalShapeInterface

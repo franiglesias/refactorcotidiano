@@ -1,4 +1,4 @@
-# Refactoriza de single return a return early
+# Refactoriza de _single return_ a _return early_
 
 En el blog ya hemos hablado del patrón clásico [Single Exit Point](https://franiglesias.github.io/lidiando-con-el-patron-single-exit-point/) y cómo acabó derivando en *single return*. También algún momento de esta guía de refactor hemos hablado también del *return early*. Ahora vamos a retomarlos conjuntamente porque seguramente nos los encontraremos más de una vez.
 
@@ -56,9 +56,9 @@ private function reduceToOneDigit($double) : int
 
 Si el método tiene más de dos caminos se dará una combinación de las posibilidades anteriores, es decir, algunas ramas volverán de forma natural al flujo principal y otras podrían retornar por su cuenta.
 
-En principio, la ventaja del *single Return* es poder controlar con facilidad que se devuelve el tipo de respuesta correcta, algo que sería más difícil si tenemos muchos lugares con `return` . Pero la verdad es que explicitando *return types* es algo de lo que ni siquiera tendríamos que preocuparnos.
+En principio, la ventaja del *Single Return* es poder controlar con facilidad que se devuelve el tipo de respuesta correcta, algo que sería más difícil si tenemos muchos lugares con `return` . Pero la verdad es que explicitando *return types* es algo de lo que ni siquiera tendríamos que preocuparnos.
 
-En cambio, el mayor problema que tiene Single Return es que fuerza la anidación de condicionales y el uso de `else` hasta extremos exagerados, lo que provoca que el código sea especialmente difícil de leer. Lo peor es que eso no se justifica por necesidades del algoritmo, sino por la gestión del flujo para conseguir que solo se pueda retornar en un punto.
+En cambio, el mayor problema que tiene _Single Return_ es que fuerza la anidación de condicionales y el uso de `else` hasta extremos exagerados, lo que provoca que el código sea especialmente difícil de leer. Lo peor es que eso no se justifica por necesidades del algoritmo, sino por la gestión del flujo para conseguir que solo se pueda retornar en un punto.
 
 El origen de esta práctica parece que podría ser una mala interpretación del patrón *Single Exit Point* de Djkstra, un patrón que era útil en lenguajes que permitían que las llamadas a subrutinas y sus retornos pudieran hacerse a líneas arbitrarias. Su objetivo era asegurar que se entrase a una subrutina en su primera línea y se volviese siempre a la línea siguiente a la llamada.
 
@@ -66,13 +66,11 @@ El origen de esta práctica parece que podría ser una mala interpretación del 
 
 El patrón *early return* consiste en salir de una función o método en cuanto sea posible, bien porque se ha detectado un problema (*fail fast*), bien porque se detecta un caso especial que se maneja fuera del algoritmo general o por otro motivo.
 
-Dentro de este patrón encajan cosas como las cláusulas de guarda, que validan los parámetros recibidos y lanzan una excepción si no son correctos.
+Dentro de este patrón encajan cosas como las cláusulas de guarda, que validan los parámetros recibidos y lanzan una excepción si no son correctos. También se encuentran aquellos casos particulares que necesitan un tratamiento especial, pero que es breve o inmediato.
 
-También se encuentran aquellos casos particulares que necesitan un tratamiento especial, pero que es breve o inmediato.
+De este modo, al final nos queda el algoritmo principal ocupando el primer nivel de indentación y sin elementos que nos distraigan.
 
-De este modo, al final nos queda el algoritmo principal.
-
-El principal inconveniente es la posible inconsistencia que pueda darse en los diferentes returns en cuanto al tipo o formato de los datos, algo que se puede controlar fácilmente forzando un *return type*.
+El mayor inconveniente es la posible inconsistencia que pueda darse en los diferentes _returns_ en cuanto al tipo o formato de los datos, algo que se puede controlar fácilmente forzando un *return type*.
 
 Por otra parte, ganamos en legibilidad, ya que mantenemos bajo control el anidamiento de condicionales y los niveles de indentación.
 
@@ -129,7 +127,7 @@ class QuickSort
 
 ```
 
-El primer paso es invertir la condicional, para ver la rama más corta en primer lugar:
+El primer paso es invertir la condicional, para ver la rama más corta en primer lugar. Aquí se ve claramente que cada una de las ramas implica un cálculo diferente de la misma variable, que es lo que se va a devolver al final. El _else_ se introduce porque no queremos que el flujo pase por el bloque grande si `$source` tiene un único elemento o ninguno, ya que no tendríamos necesidad de ordenarlo.
 
 ```php
 public function sort(array $source)
@@ -156,9 +154,7 @@ public function sort(array $source)
 }
 ```
 
-Al invertir las ramas es fácil ver que en caso de que `$length` sea menor o igual que uno podemos retornar sin problema. De hecho, no tiene mucho sentido intentar ordenar una lista de un solo elemento.
-
-Al hacer esto, también podemos eliminar el uso de la variable temporal `$sorted` que es innecesaria.
+Por esa razón, podríamos simplemente finalizar y retornar el valor de `$source` como que ya está ordenado. Al hacer esto, también podemos eliminar el uso de la variable temporal `$sorted` que es innecesaria.
 
 ```php
 public function sort(array $source)
@@ -182,7 +178,6 @@ public function sort(array $source)
     
     return array_merge($this->sort($less), $equal, $this->sort($greater));
 }
-
 ```
 
 Con este arreglo el código ya mejora mucho su legibilidad gracias a que despejamos el terreno tratando el caso especial y dejando el algoritmo principal limpio.
@@ -258,7 +253,7 @@ public function sort(array $source): array
 
 ## Otro ejemplo
 
-En este caso es un Binary Search Tree, en el que se nota que no tenía muy claro el concepto de *return early* o, al menos, no lo había aplicado hasta sus últimas consecuencias, por lo que el código no mejora apenas:
+En este caso es un _Binary Search Tree_, en el que se nota que no tenía muy claro el concepto de *return early* o, al menos, no lo había aplicado hasta sus últimas consecuencias, por lo que el código no mejora apenas:
 
 ```php
 <?php
@@ -403,7 +398,7 @@ public function insert($value): void
 
 ```
 
-Al método insertNew le sobra indentación:
+Al método `insertNew` le sobra indentación:
 
 ```php
 public function insertNew(
@@ -541,7 +536,7 @@ private function findParent(
 
 ```
 
-Todos estos refactors se pueden hacer sin riesgo con las herramientas de *Intentions* (comando + return) de PHPStorm que nos ofrecen la **inversión de if/else** (*flip*), y la **separación de flujos** (*split workflows*) cuando son posibles. En todo caso, estas clases estaban cubiertas por tests y estos siguen pasando sin ningún problema.
+Todos estos refactors se pueden hacer sin riesgo con las herramientas de *Intentions* (comando + return) de PHPStorm que nos ofrece la **inversión de if/else** (*flip*), y la **separación de flujos** (*split workflows*) cuando son posibles. En todo caso, estas clases estaban cubiertas por tests y estos siguen pasando sin ningún problema.
 
 Finalmente, arreglamos `findNode`, que estaba así:
 
