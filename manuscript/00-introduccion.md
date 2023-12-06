@@ -79,18 +79,14 @@ Al añadir código a un sistema de software, aumentamos su entropía o desorden.
 
 ## Cómo refactorizar
 
-La idea del refactor cotidiano es muy simple:
-
-Se trata de realizar pequeños cambios inocuos en nuestro código en cualquier momento que se nos presente la ocasión. Es lo que algunos autores denominan **refactor oportunista**.
-
-Nuestra propuesta concreta es que hagas un refactor muy pequeño cada vez que lo veas necesario, de modo que, en una primera fase:
+La idea del refactor cotidiano es muy simple: Se trata de realizar pequeños cambios inocuos en nuestro código en cualquier momento que se nos presente la ocasión. Es lo que algunos autores denominan **refactor oportunista**. Nuestra propuesta concreta es que hagas un refactor muy pequeño cada vez que lo veas necesario, de modo que, en una primera fase:
 
 * solo tocas un archivo.
 * los cambios quedan recogidos en un único commit atómico, que contengan solo los cambios debidos a ese refactor.
 
-En una segunda fase:
+En una segunda fase, a medida que ganas confianza:
 
-* los cambios podrían a varios archivos, pero el ámbito es limitado.
+* los cambios podrían afectar a varios archivos, pero el ámbito es limitado.
 * los cambios quedan recogidos en un único commit atómico.
 
 En una tercera fase:
@@ -100,9 +96,7 @@ En una tercera fase:
 
 ## La guía
 
-Esta guía se compone de una serie de capítulos en los que se exponen diversas orientaciones y principios que seguir a la hora de refactorizar. La idea es explicar ámbitos en los que podrías intervenir en los tres niveles indicados en el apartado anterior.
-
-En muchos casos los refactors propuestos, al menos en el primer nivel o fase no necesitarían tests porque podrían ejecutarse mediante herramientas del IDE.
+Esta guía se compone de una serie de capítulos en los que se exponen diversas orientaciones y principios que seguir a la hora de refactorizar. La idea es explicar ámbitos en los que podrías intervenir en los tres niveles indicados en el apartado anterior. En muchos casos los refactors propuestos, al menos en el primer nivel o fase no necesitarían tests porque podrían ejecutarse mediante herramientas del IDE.
 
 Con el tiempo, es posible que esos pequeños refactors acumulado día tras día, mejoren la forma y calidad de tu código y te despejen caminos para mejorar su expresividad y arquitectura.
 

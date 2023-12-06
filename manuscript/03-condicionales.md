@@ -25,9 +25,7 @@ Otras reglas prácticas que podemos aplicar son:
 
 ## La rama corta primero
 
-Si una estructura condicional nos lleva por una rama muy corta en caso de cumplirse y por una muy larga en el caso contrario, se recomienda que la rama corta sea la primera, para evitar que pase desapercibida.
-
-Por ejemplo, este fragmento tan feo:
+Si una estructura condicional nos lleva por una rama muy corta en caso de cumplirse y por una muy larga en el caso contrario, se recomienda que la rama corta sea la primera, para evitar que pase desapercibida. Por ejemplo, este fragmento tan feo:
 
 ```php
 if ($selectedPaymentMethod == null) {
@@ -57,7 +55,7 @@ if (null !== $selectedPaymentMethod) {
 
 ## Return early
 
-Si estamos dentro de una función o método y podemos hacer el retorno desde dentro de una rama es preferible hacerlo. Con eso podemos evitar el *else* y hacer que el código vuelva al nivel de indentación anterior, mejor si es el primero, lo que facilitará la lectura.
+Si estamos dentro de una función o método y podemos hacer el retorno desde dentro de una rama es preferible hacerlo. Con eso podemos evitar el `else` y hacer que el código vuelva al nivel de indentación anterior, mejor si es el primero, lo que facilitará la lectura.
 
 Imaginemos que tras el código anterior tenemos un `return`, no hace falta que sea inmediatamente después:
 
@@ -77,7 +75,7 @@ if (null !== $selectedPaymentMethod) {
 return $paymentMethod;
 ```
 
-En realidad, en la primera rama ya podríamos volver sin problemas, lo que nos permite eliminar la cláusula `else`, reduciendo la indentación del código.
+En realidad, en la primera rama ya podríamos volver sin problemas porque lo que devolvemos el `$paymentMethods`, lo que nos permite eliminar la cláusula `else`, reduciendo la indentación del código.
 
 ```php
 if (null !== $selectedPaymentMethod) {
@@ -153,9 +151,9 @@ Una alternativa es usar una librería de aserciones, lo que nos permite hacer lo
 Assert::betweenExclusive($parameter, 0, 100)
 ```
 
-Una limitación de las aserciones que debemos tener en cuenta es no usarlas para control de flujo. Esto es, las aserciones fallan con una excepción, interrumpiendo la ejecución del programa, que así puede comunicar al módulo llamante una circunstancia que impide continuar. En el caso de necesitar una alternativa si el parámetro no cumple las condiciones, utilizaremos condicionales.
+Una limitación de las aserciones que debemos tener en cuenta es nunca usarlas para control de flujo. Esto es, las aserciones fallan con una excepción, interrumpiendo la ejecución del programa, que así puede comunicar al módulo llamante una circunstancia que impide continuar. Por eso, las aserciones son ideales para validar precondiciones.
 
-Aquí lo podemos ver, si el parámetro excede los límites queremos que se ajuste al límite que ha superado: 
+En el caso de necesitar una alternativa si el parámetro no cumple los requisitos, utilizaremos condicionales. Aquí lo podemos ver, si el parámetro excede los límites queremos que se ajuste al límite que ha superado: 
 
 ```php
 $parameter = $this->checkTheParameterIsInRange($parameter);
@@ -188,7 +186,7 @@ if (!$selectedPaymentMethod) {
 } 
 ```
 
-En uno de los ejemplos anteriores habíamos llegado a la siguiente construcción, que es una condición negada especialmente difícil de leer:
+En uno de los ejemplos anteriores habíamos llegado a la siguiente construcción invirtiendo la condicional lo que resultó en una doble negación especialmente difícil de leer:
 
 ```php
 if (null !== $selectedPaymentMethod) {
@@ -196,7 +194,7 @@ if (null !== $selectedPaymentMethod) {
 } 
 ```
 
-Nosotros lo que queremos es devolver el método de pago si es que tenemos uno seleccionado:
+Nosotros lo que queremos es devolver el método de pago en caso de tener uno seleccionado:
 
 ```php
 if ($selectedPaymentMethod) {
@@ -216,7 +214,6 @@ function userHasSelectedAPaymentMethod($selectedPaymentMethod)
     return null !== $selectedPaymentMethod;
 }
 ```
-
 
 ## Encapsula expresiones complejas en métodos o funciones
 
@@ -333,7 +330,7 @@ private function reportForProductInPendingStatus(paymentMethod)
 
 De ese modo, la complejidad queda oculta en los métodos y el cuerpo principal se entiende fácilmente. Ya es cuestión nuestra si necesitamos seguir el refactor dentro de los métodos privados que acabamos de crear.
 
-### Equalize branches
+### _Equalize branches_
 
 Si hacemos esto en todas las ramas de una condicional o de un switch las dejaremos todas al mismo nivel, lo que facilita su lectura.
 
@@ -381,7 +378,7 @@ private function reportForProductInPendingStatus(paymentMethod)
 }
 ```
 
-## Sustituir if por el operador ternario
+## Sustituir `if` por el operador ternario
 
 A veces, un operador ternario puede ser más legible que una condicional:
 
