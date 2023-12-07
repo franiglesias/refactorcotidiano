@@ -1,4 +1,6 @@
-# Deja atrás lo primitivo
+# Capítulo 4. Deja atrás lo primitivo
+
+En el que se habla de que si estamos siguiendo un paradigma orientado a objetos, todo debería ser un objeto. Sí, todo.
 
 Todos los lenguajes de programación vienen de serie con un conjunto de tipos de datos básicos que denominamos primitivos (y en algún caso escalares, cuando no son objetos): boolean, int, float, string…, que utilizamos para representar cosas y operar con ellas. La parte mala es que son tipos genéricos y, a veces, necesitaríamos algo con más significado.
 

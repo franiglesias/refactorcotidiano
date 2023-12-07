@@ -1,4 +1,6 @@
-# Refactoriza a Enumerables
+# Capítulo 5. Refactoriza a Enumerables
+
+Que trata sobre cómo gestionar aquellos tipos de datos que tienen valores limitados, algo que solemos encontrar en prácticamente todos los dominios.
 
 En este capítulo profundizaremos en una idea que ya apuntamos en un capítulo anterior: refactorizar introduciendo enumerables. Los **enumerables** son tipos de datos que cuentan con un número finito de valores posibles.
 

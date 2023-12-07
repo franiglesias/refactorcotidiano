@@ -1,14 +1,14 @@
-# Acondiciona las condicionales
+# Capítulo 3. Acondiciona las condicionales
 
-Este capítulo de la _Guía del refactor cotidiano_ trata sobre cómo mejorar las estructuras condicionales.
+En el que decidimos cómo hacer que las decisiones que el código toma sean más comprensibles y fáciles de mantener en el futuro, porque al fin y a la postre todo en esta vida es decidir. El caso es saber cuando tomar las decisiones.
 
 Es bastante obvio que si hay algo que añade complejidad a un software es la **toma de decisiones** y, por tanto, las estructuras condicionales con las que la expresamos.
 
 Estas estructuras pueden introducir dificultades de comprensión debido a varias razones:
 
-* **La complejidad de las expresiones evaluadas**, sobre todo cuando se combinan mediante operadores lógicos tres o más condiciones.
-* **La anidación de estructuras condicionales** y la concatenación de condicionales mediante `else`.
-* **El desequilibrio entre las ramas** en las que una rama tiene unas pocas líneas frente a la otra que esconde su propia complejidad. 
+* **La complejidad de las expresiones evaluadas**, sobre todo cuando se combinan mediante operadores lógicos tres o más condiciones, lo que las hace difíciles de procesar para nosotras.
+* **La anidación de estructuras condicionales** y la concatenación de condicionales mediante `else`, introduciendo múltiples flujos de ejecución.
+* **El desequilibrio entre las ramas** en las que una rama tiene unas pocas líneas frente a la otra que esconde su propia complejidad, lo que puede llevar a pasar por alto la rama corta y dificulta la lectura de la rama larga al introducir un nuevo nivel de indentación.
 
 ## ¿Cuándo refactorizar condicionales?
 
@@ -405,7 +405,7 @@ function selectElement(Criteria $criteria, Desirability $desirability)
 
 Realmente las últimas líneas pueden expresarse en una sola y queda más claro:
 
-```php
+```injectablephp
 function selectElement(Criteria $criteria, Desirability $desirability)
 {
     $found = false;
@@ -424,6 +424,26 @@ function selectElement(Criteria $criteria, Desirability $desirability)
 ```
 
 El operador ternario tiene sus problemas, pero, en general, es una buena solución cuando queremos expresar un cálculo que se resuelve de dos maneras según una condición. Eso sí: nunca anides operadores ternarios porque su lectura entonces se complica enormemente.
+
+De todos modos, este ejemplo concreto de código puede mejorar mucho. Si nos fijamos, el primer elemento encontrado ya nos basta como respuesta, por lo que se podría devolver inmediatamente. No necesitamos ninguna variable temporal, ni una doble condición. Este tipo de refactor lo veremos en el capítulo sobre _return early_.
+
+```injectablephp
+function selectElement(Criteria $criteria, Desirability $desirability)
+{ 
+    foreach($this->getElements($criteria) as $element) {
+        if ($this->isDesired($element, $desirability)) {
+            return $element;
+        }
+    }
+    
+    return null;
+}
+```
+
+## Sólo un `if` por método
+
+Christian Clausen en [Five Lines of Code](https://www.manning.com/books/five-lines-of-code) propone un refactor para condicionales que puede ser muy interesante. Con frecuencia, una estructura condicional indica que una función está haciendo varias cosas distintas.
+
 
 ## Resumen del capítulo
 

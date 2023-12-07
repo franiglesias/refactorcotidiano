@@ -1,6 +1,6 @@
-# Cuando los comentarios confunden
+# Capítulo 1. Cuando los comentarios confunden
 
-Nuestro primer capítulo trata sobre los comentarios. Con frecuencia entramos en un código nuevo y nos dirigimos en primer lugar a los comentarios para tratar de entenderlo. Y, sin embargo, muchas veces lo que debería ser una documentación del proyecto no hace más que sumirnos en confusión.
+En el que se trata de como gestionar los comentarios de un código, con especial atención a las situaciones en que el comentario más que ayudar nos confunde, así como criterios para decidir qué comentarios mantener y cuales no.
 
 ## Comentarios y documentación
 
