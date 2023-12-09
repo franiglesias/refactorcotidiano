@@ -1,6 +1,6 @@
 # Capítulo 7. Refactoriza de _single return_ a _return early_
 
-En el que se trata un problema que viene del principio de los tiempos de la programación, cuando teníamos cosas como GOTO, números de línea y direcciones de memoria arbitrarias a las que saltar. Pero aún nos quedan algunos hábitos.
+> En el que se trata un problema que viene del principio de los tiempos de la programación, cuando teníamos cosas como GOTO, números de línea y direcciones de memoria arbitrarias a las que saltar. Pero aún nos quedan algunos hábitos.
 
 En el blog ya hemos hablado del patrón clásico [Single Exit Point](https://franiglesias.github.io/lidiando-con-el-patron-single-exit-point/) y cómo acabó derivando en *single return*. También algún momento de esta guía de refactor hemos hablado también del *return early*. Ahora vamos a retomarlos conjuntamente porque seguramente nos los encontraremos más de una vez.
 

@@ -1,6 +1,6 @@
 # Capítulo 1. Cuando los comentarios confunden
 
-En el que se trata de como gestionar los comentarios de un código, con especial atención a las situaciones en que el comentario más que ayudar nos confunde, así como criterios para decidir qué comentarios mantener y cuales no.
+> En el que se trata de como gestionar los comentarios de un código, con especial atención a las situaciones en que el comentario más que ayudar nos confunde, así como criterios para decidir qué comentarios mantener y cuales no.
 
 ## Comentarios y documentación
 
@@ -10,7 +10,25 @@ Los comentarios en el código parecen una buena idea y, probablemente, eran más
 
 Así que, en este capítulo, intentaremos explicar qué comentarios nos sobran y por qué, y cuáles dejar.
 
-### ¿Por qué deberías eliminar comentarios?
+### Notas de la segunda edición
+
+No hay grandes cambios en este capítulo. En general, se mantienen las mismas ideas que en la primera edición. Lo más significativo es que hemos añadido una sección con una heurística (las seis preguntas) que puede ser útil cuando tengas que decidir si añadir o mantener un comentario.
+
+Por lo demás, este capítulo no es una diatriba general contra los comentarios o la documentación en el código, sino contra la documentación innecesaria, desactualizada o aquella que puede quedar fácilmente desactualizada.
+
+Como norma general, la documentación debería estar lo más cerca posible del propio código. Esta podría ser una forma útil de organizar la documentación:
+
+* El código expresa claramente qué hace y cómo.
+* Los tests documentan cómo se usa el código, mediante ejemplos que se pueden ejecutar.
+* Se añaden comentarios cuando clarifican el porqué de ciertas decisiones.
+* El gestor de versiones documenta la historia del desarrollo.
+* El archivo README explica la naturaleza del proyecto, su relación con otros proyectos en su caso, y documenta el proceso de instalación, uso en local, desarrollo y testing.
+* Mejor aún si estos procesos están automatizados, mediante una herramienta tipo `make` o la equivalente para un ecosistema específico. Considérala una _pipeline_ local.
+* El archivo README enlaza a documentos que puedan ser útiles, como how-to, configuración del IDE para el proyecto, o cualquier otro proceso que se considere oportuno, y se guardan en el mismo repositorio.
+* Las decisiones más abstractas sobre el código, como pueden ser decisiones sobre diseño, convenciones de código, decisiones sobre tecnologías, etc., se pueden documentar mediante Architecture Decision Records (ADR), que se guardarán también en el repositorio.
+* Los manuales de uso de la aplicación o el software pueden documentarse externamente, pero es conveniente enlazarlo en el README del proyecto, que actuaría como punto de entrada.
+
+## ¿Por qué deberías eliminar comentarios?
 
 Las principales razones para borrar comentarios son:
 

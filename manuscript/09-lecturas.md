@@ -1,6 +1,6 @@
 # Lecturas recomendadas
 
-Donde se exponen algunos libros, artículos y vídeos que pueden ser un buen recurso para aprender de autores más cualificados y prestigiosos que el de este libro, cosa que tampoco es tan difícil de encontrar.
+> Donde se exponen algunos libros, artículos y vídeos que pueden ser un buen recurso para aprender de autores más cualificados y prestigiosos que el de este libro, cosa que tampoco es tan difícil de encontrar.
 
 ## Libros recomendados
 

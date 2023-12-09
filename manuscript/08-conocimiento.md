@@ -1,6 +1,6 @@
 # Capítulo 8. Dónde poner el conocimiento
 
-En el que se continúan ideas expuestas en el Capítulo 6 acerca de cómo reasignar responsabilidades en el código.
+> En el que se continúan ideas expuestas en el Capítulo 6 acerca de cómo reasignar responsabilidades en el código.
 
 En anteriores capítulos hemos propuesto refactorizar código a Value Objects o aplicar principios como la *ley de Demeter* o *Tell, don't ask* para mover código a un lugar más adecuado. En este capítulo vamos a analizarlo desde un punto de vista más general.
 

@@ -1,6 +1,6 @@
 # Capítulo 6. Aplica Tell, Don't Ask y la Ley de Demeter
 
-En el que tratamos sobre la redistribución de responsabilidades. Porque en un sistema orientado a objetos la pregunta no es: ¿cómo hay que hacer esto?, sino: ¿quién debería estar haciendo esto? Y, por tanto, lo que buscamos es la forma de mover las responsabilidades y comportamientos a los objetos a los que pertenecen naturalmente. 
+> En el que tratamos sobre la redistribución de responsabilidades. Porque en un sistema orientado a objetos la pregunta no es: ¿cómo hay que hacer esto?, sino: ¿quién debería estar haciendo esto? Y, por tanto, lo que buscamos es la forma de mover las responsabilidades y comportamientos a los objetos a los que pertenecen naturalmente. 
 
 Hasta ahora, hemos trabajado refactors muy orientados a mejorar la expresividad del código y a la organización de unidades de código. En este capítulo vamos a trabajar en cómo mejorar las relaciones entre objetos.
 

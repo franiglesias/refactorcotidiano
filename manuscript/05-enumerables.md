@@ -1,6 +1,6 @@
 # Capítulo 5. Refactoriza a Enumerables
 
-Que trata sobre cómo gestionar aquellos tipos de datos que tienen valores limitados, algo que solemos encontrar en prácticamente todos los dominios.
+> Que trata sobre cómo gestionar aquellos tipos de datos que tienen valores limitados, algo que solemos encontrar en prácticamente todos los dominios. Pero también algo que queremos mejorar respecto a la edición anterior.
 
 En este capítulo profundizaremos en una idea que ya apuntamos en un capítulo anterior: refactorizar introduciendo enumerables. Los **enumerables** son tipos de datos que cuentan con un número finito de valores posibles.
 
@@ -10,13 +10,13 @@ En cualquier caso, el número de estados es limitado y lo podemos contar. El pro
 
 Y aquí es dónde pueden ayudarnos los **Enumerables**.
 
-Los **Enumerables** se modelan como **Value Objects**. Esto quiere decir que un objeto representa un valor y se encarga de mantener su consistencia, disfrutando de todas [las ventajas que señalamos en el capítulo anterior](https://franiglesias.github.io/everyday-refactor-4/).
+Los **Enumerables** se modelan como **Value Objects**. Esto quiere decir que un objeto representa un valor y se encarga de mantener su consistencia, disfrutando de todas las ventajas que señalamos en el capítulo anterior.
 
 En la práctica, además, podemos hacer que los **Enumerables** nos permitan una representación semántica en el código, aunque internamente transporten valores abstractos, como códigos numéricos, necesarios para la persistencia en base de datos, por ejemplo.
 
 ## De escalar a enumerable
 
-Empecemos con un caso más o menos típico. Tenemos una entidad con una propiedad que puede tener dos valores, como 'activo' y 'cancelado'. Inicialmente la modelamos con un *string*, que es como se va a guardar en base de datos, y confiamos en que lo sabremos manejar sin mayores problemas en el código. ¿Qué podría salir mal?
+Empecemos con un caso más o menos típico. Tenemos una entidad con una propiedad que puede tener dos valores, como 'activo' y 'cancelado'. Inicialmente, la modelamos con un *string*, que es como se va a guardar en base de datos, y confiamos en que lo sabremos manejar sin mayores problemas en el código. ¿Qué podría salir mal?
 
 Para empezar, cuando tenemos una variable o propiedad de tipo *string*, tenemos infinitos valores potenciales de esa variable o propiedad y tan solo queremos usar dos de ellos. Así que, cuando necesitemos usarlo, tendremos que asegurarnos de que solo consideraremos esos dos *strings* concretos. En otras palabras: tendremos que validarlos cada vez.
 
@@ -409,7 +409,7 @@ try {
 }
 ```
 
-Otra situación interesante se produce cuando necesitamos reasignar el estado del contrato de forma directa. Por ejemplo, debido a errores o tal vez por necesidades de sincronización entre distintos sistemas. En esos caso, podríamos tener (o no) reglas de negocio que permitan ciertos cambios y prohiban otros.
+Otra situación interesante se produce cuando necesitamos reasignar el estado del contrato de forma directa. Por ejemplo, debido a errores o tal vez por necesidades de sincronización entre distintos sistemas. En esos caso, podríamos tener (o no) reglas de negocio que permitan ciertos cambios y prohíban otros.
 
 Para nuestro ejemplo vamos a imaginar que un contrato puede volver atrás un paso (de *signed* a *pre-signed* y de *finalized* a *signed*) o avanzar un paso, como en el método `forward`.
 
@@ -621,3 +621,139 @@ class LegacyStatusTransformer
 }
 ```
 
+## Plot-twist: no uses enumerables y abraza el polimorfismo
+
+Si bien usar enumerables es una mejora sustancial con respecto a usar primitivos, la programación orientada a objetos nos ofrece algo mejor: el polimorfismo. Recordemos: el polimorfismo es la propiedad que nos permite enviar el mismo mensaje a distintos objetos a fin de que cada uno actúe como le corresponda.
+
+Tomemos el ejemplo anterior:
+
+
+```injectablephp
+<?php
+declare(strict_types=1);
+
+namespace App\Domain;
+
+use DomainException;
+
+class ContractStatus
+{
+    public const PRESIGNED = 'presigned';
+    public const SIGNED = 'signed';
+    public const FINALIZED = 'finalized';
+
+    private const VALID_STATUSES = [
+        self::PRESIGNED,
+        self::SIGNED,
+        self::FINALIZED
+    ];
+    /** @var string */
+    private $status;
+
+    public function __construct(string $status)
+    {
+        $status = mb_convert_case($status, MB_CASE_LOWER);
+        if (! in_array($status, self::VALID_STATUSES, true)) {
+            throw new \InvalidArgumentException(sprintf('%s status not valid', $status));
+        }
+        $this->status = $status;
+    }
+
+    public function status(): string
+    {
+        return $this->status;
+    }
+
+    public function forward(): ContractStatus
+    {
+        switch ($this->status) {
+            case self::PRESIGNED:
+                return new self(self::SIGNED);
+            case self::SIGNED:
+                return new self(self::FINALIZED);
+        }
+
+        throw new DomainException(
+            sprintf('Can not forward from %s status', $this->status())
+        );
+    }
+
+    public function changeTo(ContractStatus $newContractStatus): ContractStatus
+    {
+    
+        switch ($this->status) {
+            case self::PRESIGNED:
+                if ($newContractStatus->status() !== self::SIGNED) {
+                    $this->failWhenChangeIsNotAllowed($newContractStatus);
+                }
+                break;
+            case self::FINALIZED:
+                if ($newContractStatus->status() !== self::SIGNED) {
+                    $this->failWhenChangeIsNotAllowed($newContractStatus);
+                }
+                break;
+            default:
+                if ($newContractStatus->status() === self::SIGNED) {
+                    $this->failWhenChangeIsNotAllowed($newContractStatus);
+                }
+        }
+
+        return $newContractStatus;
+    }
+
+    private function failWhenChangeIsNotAllowed(ContractStatus $newContractStatus): void
+    {
+        throw new DomainException(
+            sprintf(
+                'Change form %s to %s is not allowed',
+                (string)$this,
+                (string)$newContractStatus
+            )
+        );
+    }
+}
+```
+
+`ContractStatus` se convierte en una interfaz, que será implementada por las clases: `Presigned`, `Signed` y `Finalized`.
+
+```injectablephp
+interface ContractStatus {
+    public function forward(): ContractStatus;
+    public function changeTo($status ContractStatus): ContractStatus;
+    
+}
+```
+
+```injectablephp
+class Presigned implements ContractStatus
+{
+    public function forward(): ContractStatus
+    {
+        return new Signed();
+    }
+
+    public function changeTo(ContractStatus $newContractStatus): ContractStatus
+    {
+        if $this->forward() === $newContractStatus {
+            return $newContractStatus;
+        }
+        
+        if $newContractStatus->forward() === $this {
+            return $newContractStatus;
+        }
+        
+        $this->failWhenChangeIsNotAllowed($newContractStatus);
+    }
+
+    private function failWhenChangeIsNotAllowed(ContractStatus $newContractStatus): void
+    {
+        throw new DomainException(
+            sprintf(
+                'Change form %s to %s is not allowed',
+                (string)$this,
+                (string)$newContractStatus
+            )
+        );
+    }
+}
+```
