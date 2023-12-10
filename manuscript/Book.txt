@@ -5,7 +5,7 @@
 03-condicionales.md
 04-escalares.md
 05-enumerables.md
-06-principios.md
-07-return.md
+06-return.md
+07-principios.md
 08-conocimiento.md
 09-lecturas.md

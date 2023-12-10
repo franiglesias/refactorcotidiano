@@ -18,7 +18,7 @@ Veamos un ejemplo bastante absurdo, pero que lo deja claro.
 
 Supongamos que tenemos una clase `Square` que representa un cuadrado y queremos poder calcular su área.
 
-```php
+```injectablephp
 $square = new Square(20);
 
 $side = $square->side();
@@ -28,7 +28,7 @@ $area = $side**2;
 
 Si aplicamos el principio *Tell, Don't Ask*, el cálculo del área estaría en la clase `Square`:
 
-```php
+```injectablephp
 $square = new Square(20);
 
 $area = $square->area();
@@ -40,7 +40,7 @@ En el dominio de las figuras geométricas planas, el área o superficie es una p
 
 Posiblemente, estés de acuerdo en que al modelar este comportamiento lo pondríamos en la clase de cada figura desde el primer momento, lo que seguramente nos llevaría a una interfaz.
 
-```php
+```injectablephp
 interface TwoDimensionalShapeInterface
 {
     public function area(): float;
@@ -51,13 +51,13 @@ La primera razón es que toda la información necesaria para calcular el área e
 
 Una segunda razón es más pragmática: si el conocimiento para calcular el área está en otro lugar, como un servicio, cada vez que necesitemos incorporar una nueva clase al sistema, tendremos que modificar el servicio para añadirle ese conocimiento, rompiendo el **principio Abierto/Cerrado**. 
 
-En tercer lugar, el testing se simplifica. Es fácil hacer tests de las clases que representan las figuras. Por otro lado, el testing de las otras clases que las utilizan también se simplifica. Normalmente esas clases usarán el cálculo del área como una utilidad para llevar a cabo sus propias responsabilidades que es lo que queremos saber si hacen correctamente.
+En tercer lugar, el testing se simplifica. Es fácil hacer tests de las clases que representan las figuras. Por otro lado, el testing de las otras clases que las utilizan también se simplifica. Normalmente, esas clases usarán el cálculo del área como una utilidad para llevar a cabo sus propias responsabilidades que es lo que queremos saber si hacen correctamente.
 
 Siguiendo el principio ***Tell, Don't Ask*** movemos responsabilidades a los objetos a los que pertenecen. 
 
 ## Ley de Demeter
 
-La **Ley de Demeter**[^fn-demeter] también se conoce como **Principio de menor conocimiento** y, más o menos, dice que un objeto no debería conocer la organización interna de los otros objetos con los que colabora.
+La **Ley de Demeter**[^fn-demeter] también se conoce como **Principio de mínimo conocimiento** y, más o menos, dice que un objeto no debería conocer la organización interna de los otros objetos con los que colabora.
 
 [^fn-demeter]: El nombre viene del proyecto donde se usó por primera vez.
 
@@ -70,7 +70,7 @@ Siguiendo la **Ley de Demeter**, como veremos, un método de una clase solo pued
 
 La finalidad de la **ley de Demeter** es evitar el acoplamiento estrecho entre objetos. Si un método usa un objeto, contenido en otro objeto que ha recibido o creado, implica un conocimiento que va más allá de la interfaz pública del objeto intermedio.
 
-```php
+```injectablephp
 public function calculatePrice(Product $product, int $units): float
 {
     $discountPct = $product->currentPromotion()->discountPct();
@@ -84,7 +84,7 @@ En el ejemplo, el método `calculatePrice` obtiene el descuento aplicable llaman
 
 Puedes ponerlo así, pero sigue siendo el mismo problema:
 
-```php
+```injectablephp
 public function calculatePrice(Product $product, int $units): float
 {
     $promotions = $product->currentPromotion();
@@ -106,7 +106,7 @@ Es posible aplicar varias soluciones. La más adecuada depende de varios factore
 
 En algunos casos, se trataría de aplicar el principio ***Tell, Don't Ask***. Esto es. A veces, la responsabilidad de ofrecernos una cierta respuesta encajaría en el objeto intermedio, por lo que podríamos encapsular la cadena de llamadas. Veámoslo con un ejemplo similar:
 
-```php
+```injectablephp
 public function calculatePrice(Product $product, int $units): float
 {
     $basePrice = $product->family()->basePrice();
@@ -117,7 +117,7 @@ public function calculatePrice(Product $product, int $units): float
 
 En este caso, resulta razonable pensar que la estructura del precio de un producto es algo propio del producto, y los usuarios del objeto no tienen por qué conocerla. En un primer paso, aplicamos la **Ley de Demeter** haciendo que el objeto `Price` sea el que obtiene el precio base, sin que la calculadora tenga que saber de dónde se obtiene.
 
-```php
+```injectablephp
 public function calculatePrice(Product $product, int $units): float
 {
     $basePrice = $product->basePrice();
@@ -130,7 +130,7 @@ En ese caso, `Product` utiliza su colaborador `Family` para obtener el valor que
 
 En el segundo paso, aplicamos `Tell, Don't Ask`, ya que realmente estamos pidiéndole cosas a `Product` que puede hacer por sí mismo.
 
-```php
+```injectablephp
 public function calculatePrice(Product $product, int $units): float
 {
     return $product->unitPrice() * $units;
@@ -141,7 +141,7 @@ public function calculatePrice(Product $product, int $units): float
 
 El primer ejemplo sobre descuentos es un poco más delicado que el que acabamos de ver:
 
-```php
+```injectablephp
 public function calculatePrice(Product $product, int $units): float
 {
     $discountPct = $product->currentPromotion()->discountPct();
@@ -155,7 +155,7 @@ Dicho de otro modo, no tiene mucho sentido que un producto conozca cuáles son l
 
 Tiene más sentido que la responsabilidad de las promociones esté en otro lugar. Podría ser algo así:
 
-```php
+```injectablephp
 public function calculatePrice(Product $product, int $units): float
 {
     $discountPct = $this->getPromotions->forProduct($product);

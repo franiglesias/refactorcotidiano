@@ -4,6 +4,18 @@
 
 En este capítulo profundizaremos en una idea que ya apuntamos en un capítulo anterior: refactorizar introduciendo enumerables. Los **enumerables** son tipos de datos que cuentan con un número finito de valores posibles.
 
+### Notas de la segunda edición
+
+Esta segunda edición incluye un _plot-twist_ respecto a la primera en la que recomendábamos usar enumerables. Pero los enumerables son un poco quedarse a mitad de camino si estamos trabajando orientados a objetos. 
+
+El problema con los enumerables es que siempre vamos a tener que estar mirando su estado cuando queramos añadirles comportamiento. Esto es, una instancia de un enumerable puede tener cualquiera de los valores posibles de ese concepto. Si quiero añadir un comportamiento que dependa de ese valor, tendré que preguntarle al enumerable cada vez para asegurarme que sea el correcto. Si tengo muchos valores y muchas variantes de comportamiento, el objeto será complejo y difícil de mantener.
+
+Este cambio ha sido muy influenciado por mi relectura del libro _Five lines of code_, de Christian Clausen, pero, de hecho, tiene todo el sentido del mundo desde la perspectiva de orientación a objetos.
+
+Dejo aquí el capítulo original de la primera edición, con algún retoque, y añado una gran _addenda_ para explicar cómo refactorizar a objetos.
+
+## Enumérame otra vez
+
 Supongamos el típico problema de representar los estados de alguna entidad o proceso. Habitualmente usamos un *string* o un número para ello. La primera opción ayuda a que el valor sea legible por humanos, mientras que la representación numérica puede ser más compacta aunque más difícil de entender.
 
 En cualquier caso, el número de estados es limitado y lo podemos contar. El problema es garantizar la consistencia de los valores que utilicemos para representarlos, incluso entre distintos sistemas.
@@ -28,7 +40,7 @@ En lugar de esto, deberíamos usar un **Value Object**, como vimos en el capítu
 
 Nuestra primera iteración es simple, definimos una clase `Status` que contiene un valor *string*.
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -49,7 +61,7 @@ class Status
 
 Personalmente, me gusta añadir un método `__toString` a los VO para poder hacer el *type cast* si lo necesito.
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -75,7 +87,7 @@ class Status
 
 Tenemos que definir cuáles son los valores aceptables para este VO, lo cual podemos hacer mediante constantes de clase. Definiremos una para cada valor válido y una extra que será un simple array que los agrupa, lo que nos facilitará la validación.
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -114,7 +126,7 @@ Por otro lado, está el tema de las constantes públicas. Es una cuestión de co
 
 Nuestro siguiente paso debería ser implementar la validación que nos garantice que podemos instanciar solo valores correctos.
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -152,7 +164,7 @@ class Status
 
 Como se puede ver, es muy sencillo, ya que simplemente comprobamos si el valor aportado está en la lista de valores admitidos. Pero, como es un *string*, podríamos tener algún problema en caso de que nos pasen el dato con alguna mayúscula. En estos casos, no está de más, realizar una normalización básica. Tampoco se trata de arreglar el input externo, pero sí de prevenir alguno de los errores habituales.
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -193,7 +205,7 @@ class Status
 
 Para terminar con lo básico, necesitamos un método para comprobar la igualdad, así como un método para obtener su valor escalar si fuese preciso.
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -250,7 +262,7 @@ Hay algunas cosas interesantes que podemos hacer con los **enumerables**, a fin 
 
 Por ejemplo, podemos querer tener *named constructors* que hagan más explícita la forma de creación.
 
-```php
+```injectablephp
 public static function fromString(string $status): Status
 {
     return new self($status);
@@ -259,7 +271,7 @@ public static function fromString(string $status): Status
 
 Puesto que son pocos valores, podríamos permitirnos tener *named constructors* para crear directamente instancias con un valor determinado:
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -347,7 +359,7 @@ Como hemos dicho, este tipo de reglas de negocio pueden encapsularse en el propi
 
 Veamos el ejemplo lineal. Supongamos un `ContractStatus` que admite tres estados que se suceden en una única secuencia. Podemos tener un método en el Enumerable para avanzar un paso el estado:
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -415,7 +427,7 @@ Para nuestro ejemplo vamos a imaginar que un contrato puede volver atrás un pas
 
 Esta implementación es bastante tosca, pero creo que representa con claridad la intención. El método `changeTo` nos permite pasarle un nuevo `ContractStatus` y nos lo devuelve si el cambio es válido o bien lanza una excepción.
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -504,7 +516,7 @@ class ContractStatus
 
 En esencia, el método `changeTo` valida que el estado se pueda cambiar teniendo en cuenta el estado actual. La idea de fondo es aplicar el principio `Tell, don't ask`, de modo que no le preguntemos al contrato por su estado, ni a `ContractStatus` por su valor, si no que le decimos que cambie a un nuevo estado si es posible. En caso de fallo, ya tomaremos nosotros las medidas necesarias.
 
-```php
+```injectablephp
 try {
     $newStatus = new ContractStatus('finalized');
     
@@ -521,7 +533,7 @@ try {
 
 Un enfoque pragmático, cuando las combinaciones de valores/versiones son reducidas, sería incorporar esa capacidad al propio Enumerable, mediante un named constructor específico y un método para obtener esa versión del valor.
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -595,7 +607,7 @@ Aunque la solución que acabamos de ver resulta práctica en ciertos casos, lo c
 
 Nos hace falta algún tipo de traductor:
 
-```php
+```injectablephp
 <?php
 declare(strict_types=1);
 
@@ -724,6 +736,8 @@ interface ContractStatus {
 }
 ```
 
+Aquí tenemos un ejemplo de una de esas clases.
+
 ```injectablephp
 class Presigned implements ContractStatus
 {
@@ -754,6 +768,28 @@ class Presigned implements ContractStatus
                 (string)$newContractStatus
             )
         );
+    }
+}
+```
+
+Necesitaremos una factoría para instanciar los objetos adecuados si, por ejemplo, cargamos la información desde una base de datos, o 
+
+```injectablephp
+final class ContractStatusFactory
+{
+    public function make($status string)
+    {
+        $status = mb_convert_case($status, MB_CASE_LOWER);
+        switch ($status) {
+            case "presigned":
+                return new Presigned();
+            case "signed":
+                return new Sigened();
+            case "finalized":
+                return new Finalized();
+            default:
+                throw new \InvalidArgumentException(sprintf('%s status not valid', $status));
+        }    
     }
 }
 ```

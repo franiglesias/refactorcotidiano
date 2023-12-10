@@ -64,7 +64,7 @@ Los comentarios redundantes son aquellos que nos repiten lo que ya dice el códi
 
 Por ejemplo:
 
-```php
+```injectablephp
 // Class to represent a Book
 class Book
 {
@@ -74,7 +74,7 @@ class Book
 
 En serio, ¿qué nos aporta este comentario que no esté ya expresado?
 
-```php
+```injectablephp
 class Book
 {
     //...
@@ -83,7 +83,7 @@ class Book
 
 Los lenguajes fuertemente tipados, que soportan *type hinting* y/o *return typing*, nos ahorran toneladas de comentarios. Y de tests.
 
-```php
+```injectablephp
 class Book
 {
     /**
@@ -102,7 +102,7 @@ class Book
 
 Los tipos de los parámetros y del objeto devuelto están explícitos en el código, por lo que es redundante que aparezcan como comentarios.
 
-```php
+```injectablephp
 class Book
 {
     /**
@@ -120,7 +120,7 @@ class Book
 
 Puedes eliminar los comentarios redundantes poniendo mejores nombres. Por ejemplo, en este caso en que utilizamos un constructor secundario:
 
-```php
+```injectablephp
 class Book
 {
     /**
@@ -135,7 +135,7 @@ class Book
 
 Con un nombre expresivo ya no necesitamos comentario:
 
-```php
+```injectablephp
 class Book
 {
     public static function withTitleAndAuthor(Title $title, Author $author): Book
@@ -147,7 +147,7 @@ class Book
 
 O incluso más explícito:
 
-```php
+```injectablephp
 class Book
 {
     public static function newWithTitleAndAuthor(Title $title, Author $author): Book
@@ -159,11 +159,11 @@ class Book
 
 Y podemos usar el objeto así, lo cual documenta perfectamente lo que está pasando:
 
-```php
+```injectablephp
 $newBook = Book::withTitleAndAuthor($title, $author);
 ```
 
-```php
+```injectablephp
 $newBook = Book::newWithTitleAndAuthor($title, $author);
 ```
 
@@ -191,7 +191,7 @@ Así que, fuera con ellos. Algunos ejemplos:
 
 ¿De qué otro tipo de servicio estábamos hablando aquí hace tres meses? ¿Será que ya lo hemos cambiado?
 
-```php
+```injectablephp
 // @todo we should use another kind of service here
 
 $service = new Service();
@@ -200,7 +200,7 @@ $service->execute();
 
 Sería diferente si el comentario fuese mucho más preciso y detallado, de tal forma que indique con claridad el ámbito y plazo de la tarea pendiente. Algo así:
 
-```php
+```injectablephp
 /**
 @todo we should replace this service with the new implementation that support Kafka brokers when infra team finished the migration from SQS, scheduled for 18/09/2023
 */
@@ -213,7 +213,7 @@ En ese caso, el comentario hace explícitos unos detalles que definen con precis
 
 **Comentarios olvidados**. En algunos casos puede ocurrir que simplemente nos hayamos dejado comentarios olvidados. Por ejemplo, podríamos haber usado comentarios para definir las líneas básicas de un algoritmo, que es una técnica bien conocida, y ahí se habrían quedado. Todo ello también tiene que desaparecer:
 
-```php
+```injectablephp
 public function calculateFee(Request $dataToCalculate)
 {
     // Normalize amounts to same currency
@@ -232,7 +232,7 @@ public function calculateFee(Request $dataToCalculate)
 
 **Comentarios para estructurar código**. Claro que puede que el algoritmo sea lo bastante complejo como para que necesitemos describir sus diferentes partes. En este caso, el mejor refactor es extraer esas partes a métodos privados con nombres descriptivos, en lugar de usar comentarios:
 
-```php
+```injectablephp
 public function calculateFee(Request $dataToCalculate)
 {
     $this->normalizeAmountsToTheSameCurrency($dataToCalculate);
@@ -245,7 +245,7 @@ De este modo el código está estructurado y documentado.
 
 **Comentarios sobre valores válidos**. Consideremos este código:
 
-```php
+```injectablephp
 // Valid values: started, paused, running, terminated
 public function updateStatus(string $newStatus): void
 {
@@ -258,7 +258,7 @@ El comentario delimita los valores aceptables para un parámetro, pero no fuerza
 
 Por supuesto: utilizar un _enumerable_.
 
-```php
+```injectablephp
 class Status
 {
     private const STARTED = 'started';
@@ -290,7 +290,7 @@ class Status
 
 Lo que permite eliminar el comentario, a la vez que tener una implementación más limpia y coherente:
 
-```php
+```injectablephp
 public function updateStatus(Status $newStatus): void
 {
     $this->status = $newStatus;
@@ -305,7 +305,7 @@ Si es necesario recuperarlo (spoiler: no lo será) siempre nos queda el control 
 
 **Excepciones**: a veces se puede usar la técnica de comentar un código para desactivarlo temporalmente. En ese caso, deberíamos explicar esa decisión también en el mismo comentario. Mucho mejor que eso es utilizar alguna técnica de _feature flag_. Existen librerías en todos los lenguajes para gestionar _feature flags_, pero en muchos casos podemos introducer alguna variable que sea fácil de cambiar:
 
-```php
+```injectablephp
 if ($useNewCode === true) {
     $this->newCode();
 } else {
@@ -325,7 +325,7 @@ Obviamente, corremos el riesgo de que los comentarios se hagan obsoletos si olvi
 
 Un ejemplo de comentario relevante podría ser este:
 
-```php
+```injectablephp
 
 // We apply taxes to conform the procedure stated in law RD 2018/09
 public function applyTaxes(Money $totalAmountBeforeTaxes): Money
@@ -338,7 +338,7 @@ Este comentario es completamente independiente del código e indica una informac
 
 Aunque, a decir verdad, podríamos llegar a expresarlo en código. A grandes rasgos:
 
-```php
+```injectablephp
 
 interface Taxes
 {
@@ -371,7 +371,7 @@ En aquellos lenguajes en los que el análisis estático por parte del IDE no pue
 
 No debería ser una práctica común, pero es un compromiso aceptable. Por ejemplo, en PHP era frecuente indicar el tipo de las propiedades de los objetos y otras variables con comentarios, ya que el lenguaje no permitía hacerlo en código. 
 
-```php
+```injectablephp
 class Status
 {
     /** string **/
@@ -381,7 +381,7 @@ class Status
 
 Esto se introdujo en la versión 7.4:
 
-```php
+```injectablephp
 class Status
 {
     private string $value;

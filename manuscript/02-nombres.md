@@ -18,7 +18,7 @@ La regla de oro es muy sencilla: cada vez que al leer una línea de código tene
 
 Este es un ejemplo de un código en el que nos encontramos con unos cuantos problemas de nombres, algunos son evidentes y otros no tanto:
 
-```php
+```injectablephp
 
 class PriceCalculator {
     var Discount $rate;
@@ -67,7 +67,7 @@ Los nombres demasiado genéricos requieren el esfuerzo de interpretar el caso co
 
 _Calculate… what?_ Exactamente, ¿qué estamos calculando aquí? El código no lo refleja. Podría ocurrir, por ejemplo, que `$rate` fuese algún tipo de comisión, `$tax` resulta bastante obvio y `$amount` parece claro que es algo así como el precio de tarifa de algún producto o servicio, sea lo que sea que vende esta empresa. Es muy posible que este método lo que haga sea calcular el precio final para el consumidor del producto. ¿Por qué no declararlo de forma explícita?
 
-```php
+```injectablephp
 public price(): float
 {
     //...
@@ -91,7 +91,7 @@ private function calculateFinalConsumerPrice(int $amount, float $rate, float $ta
 
 Vayamos ahora con `$rate`. Tras hablarlo con negocio, hemos llegado a la conclusión de que representa el porcentaje de comisión que corresponde al comercial que ha realizado la venta. Podría pasar a llamarse `$commissionRate`, al igual que el método del cual la obtenemos.
 
-```php
+```injectablephp
 public price(): float
 {
     //...
@@ -115,7 +115,7 @@ private function calculateFinalConsumerPrice(int $amount, float $commissionRate,
 
 Además, esto era bastante necesario, porque resulta que la clase tiene otro `$rate`, que es una propiedad que, teniendo el mismo nombre, representa algo completamente distinto, como es un descuento. Tanto `$commissionRate` como `$rate` son ratios (proporciones o porcentajes), pero el hecho de que sean el mismo concepto matemático (ratio o proporción), no implica que sean el mismo concepto de negocio. Por supuesto, necesitamos mayor precisión también aquí:
 
-```php
+```injectablephp
 var float $discountRate;
 
 //...
@@ -135,7 +135,7 @@ private function calculateDiscount(float $price): float
 
 `$tax` puede mejorar también. Pero, ¿qué nos cuesta hacerlo explícito si queremos decir que se trata del IVA?
 
-```php
+```injectablephp
 public price(): float
 {
     //...
@@ -168,7 +168,7 @@ En nuestro ejemplo, la variable `$amount` es asignada tres veces y utilizada con
 
 Voy a eliminar parte del código para que te puedas fijar en algo aparentemente inocente:
 
-```php
+```injectablephp
 public price(): float
 {
     //...
@@ -194,7 +194,7 @@ private function calculateFinalConsumerPrice(
 
 Pues, por ejemplo, podría estar pasando que el precio que contiene `$product`, esté expresado en céntimos por la razón que sea, mientras que el precio final se va a expresar en euros. De nuevo, el conflicto se puede resolver siendo explícitos sobre lo que la variable realmente contiene o el parámetro exige:
 
-```php
+```injectablephp
 public price(): float
 {
     //...
@@ -220,7 +220,7 @@ Por otro lado, la secuencia de transformaciones que sufre `$amountInEuros` puede
 
 En el primer caso, esta representación puede ser mucho más descriptiva de lo que realmente pasa:
 
-```php
+```injectablephp
 public price(): float
 {
     //...
@@ -239,7 +239,7 @@ public price(): float
 
 Por ejemplo, podríamos necesitar discriminar el precio antes y después de impuestos. O el total de la comisión que se lleva el comercial, porque se han convertido en cuestiones importantes del negocio:
 
-```php
+```injectablephp
 public price(): float
 {
     //...
@@ -262,7 +262,7 @@ El refactor va aclarando, por una parte, conceptos de negocio, pero también nos
 
 Por ejemplo, que nos vendría bien utilizar un **ValueObject** para representar el precio, como `Money`, incluso aunque al final devolvamos un float para no cambiar la interfaz pública:
 
-```php
+```injectablephp
 public price(): float
 {
     //...
@@ -293,7 +293,7 @@ A su vez, nunca nos sobran los adjetivos para precisar el significado del sustan
 
 Volvamos al ejemplo. `PriceCalculator` parece un buen nombre. Es un sustantivo, por lo que se deduce que es un actor que hace algo. Veámosla como _interface_:
 
-```php
+```injectablephp
 interface PriceCalculator {
     public price(Product $product): float;
     public discount(float $rate): float;
@@ -304,7 +304,7 @@ Obviamente, este refactor es un poco más arriesgado. Vamos a tocar una interfaz
 
 Vamos por la más evidente. El método `discount` en realidad nos sirve para asignar un descuento aplicable a la siguiente operación `price`. Estamos usando un sustantivo para indicar una acción. La opción más inmediata:
 
-```php
+```injectablephp
 interface PriceCalculator {
     public price(Product $product): float;
     public setDiscount(float $rate): float;
@@ -313,7 +313,7 @@ interface PriceCalculator {
 
 Está mejor, pero también podemos ser más fieles al lenguaje de negocio. De hecho, `set` tiene un significado demasiado genérico y no dice realmente nada:
 
-```php
+```injectablephp
 interface PriceCalculator {
     public price(Product $product): float;
     public applyDiscount(float $rate): float;
@@ -322,7 +322,7 @@ interface PriceCalculator {
 
 En cambio, `applyDiscount` es una clara acción de negocio y no deja muchas dudas en cuanto al significado. Pero todavía podríamos aportar un poco más de precisión, aunque el nombre del parámetro es `$rate`, nunca se sabe cómo se va a utilizar:
 
-```php
+```injectablephp
 interface PriceCalculator {
     public price(Product $product): float;
     public applyDiscountRate(float $rate): float;
@@ -337,7 +337,7 @@ Pero antes… Volvamos un momento a la clase. `PriceCalculator`, ¿es un actor o
 
 Supongamos entonces, que consideramos que `PriceCalculator` no es una _cosa_, sino una _acción_:
 
-```php
+```injectablephp
 interface CalculatePrice {
     public price(Product $product): float;
     public applyDiscountRate(float $rate): float;
@@ -346,7 +346,7 @@ interface CalculatePrice {
 
 Tal y como está ahora, expresar ciertas cosas resulta extraño:
 
-```php
+```injectablephp
 $calculatePrice = new CalculatePrice();
 
 $calculatePrice->applyDiscountRate($rate);
@@ -355,7 +355,7 @@ $calculatePrice->price($product);
 
 Pero podemos imaginarlo de otra forma mucho más fluida:
 
-```php
+```injectablephp
 $calculatePrice = new CalculatePrice();
 
 $calculatePrice->applyingDiscountRate($rate);
@@ -364,7 +364,7 @@ $calculatePrice->finalForProduct($product);
 
 Lo que nos deja con esta interfaz:
 
-```php
+```injectablephp
 interface CalculatePrice {
     public finalForProduct(Product $product): float;
     public applyingDiscountRate(float $rate): float;
@@ -377,13 +377,13 @@ En este caso no se trata estrictamente de refactorizar nombres, sino de bautizar
 
 Poniéndoles un nombre, lo hacemos. Antes:
 
-```php
+```injectablephp
 $vatAmount = $amountBeforeTaxes * .21;
 ```
 
 Después:
 
-```php
+```injectablephp
 $vatAmount = $amountBeforeTaxes * self::VAT_RATE;
 ```
 
@@ -391,7 +391,7 @@ Convertir estos valores en constantes con nombre hace que su significado de nego
 
 Así que, cada vez que encuentres uno de estos valores, hazte un favor y reemplázalo por una constante. Por ejemplo, los naturalmente ilegibles patrones de expresiones regulares:
 
-```php
+```injectablephp
 $isValidNif = preg_match('/^[0-9XYZ]\d{7}[^\dUIOÑ]$/', $nif);
 
 // vs
@@ -401,7 +401,7 @@ $isValidNif = preg_match(Nif::VALID_NIF_PATTERN, $nif);
 
 O los patrones de formato para todo tipo de mensajes:
 
-```php
+```injectablephp
 $mensaje = sprintf('¿Enviar un mensaje a %s en la dirección %s?', $user->username(), $user->email());
 
 $mensaje = sprintf(self::CONFIRM_SEND_EMAIL_MESSAGE, $user->username(), $user->email());
@@ -415,7 +415,7 @@ Ya he hablado del problema de entender que los objetos en programación tienen q
 
 En ocasiones, es verdad que tenemos que representar ciertas operaciones técnicas, que no todo va a ser negocio, pero eso no quiere decir que no hagamos las cosas de una manera elegante. Por ejemplo:
 
-```php
+```injectablephp
 interface BookTransformer
 {
     public function transformToJson(Book $book): string;
@@ -463,7 +463,7 @@ En general, gracias a las capacidades de refactor de los IDE o incluso del Busca
 
 Imaginemos un sistema de gestión de bibliotecas que, inicialmente, se creó para gestionar libros. Simplificando muchísimo, aquí tenemos un concepto clave del negocio:
 
-```php
+```injectablephp
 class Book
 {
     private $id;
@@ -477,7 +477,7 @@ class Book
 
 Con el tiempo la biblioteca pasó a gestionar revistas. Las revistas tienen número, pero tal vez en su momento se pensó que no sería necesario desarrollar una especialización:
 
-```php
+```injectablephp
 class Book
 {
     private $id;
@@ -498,7 +498,7 @@ Claro que la biblioteca siguió evolucionando y con el avance tecnológico comen
 
 Es cierto que, dejando aparte el contenido, todos los objetos culturales conservados en una biblioteca comparten ese carácter de objeto cultural o soporte de contenidos. `CulturalObject` se nos antoja un nombre demasiado forzado, pero `Media` resulta bastante manejable:
 
-```php
+```injectablephp
 class Media
 {
     private $id;
@@ -512,7 +512,7 @@ De `Media` que representaría a los soportes de contenidos archivados en la bibl
 
 Pero esa clase tendría especializaciones que representan tipos de medios específicos, con sus propiedades y comportamientos propios.
 
-```php
+```injectablephp
 class Book extends Media
 {
 }
@@ -532,7 +532,7 @@ class Movie extends Media
 
 Podríamos desarrollar más el conocimiento de negocio en el código, añadiendo interfaces. Por ejemplo, la gestión del préstamo:
 
-```php
+```injectablephp
 interface Lendable
 {
     public function lend(User $user): void;

@@ -14,7 +14,6 @@
 
 [Refactoring.guru](https://refactoring.guru/refactoring) es un sitio web que, en parte, reproduce muchos elementos de los libros de M. Fowler, algo que en su día les llevó a ciertos problemas relacionados con la propiedad intelectual. El caso es que esta web nos presenta un catálogo de refactorings y code smells muy apañado, con numerosos ejemplos, explicaciones, esquemas e ideas. La verdad es que mola bastante.
 
-
 [The talking bit](https://franiglesias.github.io/tag/refactoring/). El origen de este libro es mi blog personal, que está bastante lleno de contenido técnico relacionado sobre todo con testing, diseño de software y, por supuesto, refactoring. Y está en español, que de recursos en inglés estamos surtidas.
 
 ## Vídeos

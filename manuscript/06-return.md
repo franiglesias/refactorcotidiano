@@ -1,18 +1,24 @@
-# Capítulo 7. Refactoriza de _single return_ a _return early_
+# Capítulo 6. Refactoriza de _single return_ a _return early_
 
 > En el que se trata un problema que viene del principio de los tiempos de la programación, cuando teníamos cosas como GOTO, números de línea y direcciones de memoria arbitrarias a las que saltar. Pero aún nos quedan algunos hábitos.
 
 En el blog ya hemos hablado del patrón clásico [Single Exit Point](https://franiglesias.github.io/lidiando-con-el-patron-single-exit-point/) y cómo acabó derivando en *single return*. También algún momento de esta guía de refactor hemos hablado también del *return early*. Ahora vamos a retomarlos conjuntamente porque seguramente nos los encontraremos más de una vez.
 
+## Notas de la segunda edición
+
+Este capítulo cambia de lugar porque me he dado cuenta de que es un refactor relativamente menor y rompe por la mitad los dos capítulos dedicados a la distribución de responsabilidades.
+
+Hasta este punto del libro estamos hablando de refactorings motivados por problemas o defectos del código que podemos identificar incluso visualmente, sin preocuparnos mucho de qué hace el código relacionado. Pero los capítulos siguientes ya requieren que pensemos en cuales son los papeles que juegan los distintos objetos en el código.
+
 Lo primero será saber de qué estamos hablando:
 
-## Single return
+## _Single return_
 
 Se trata de que en cada método o función solo tengamos un único `return`, a pesar de que el código pueda tener diversos caminos que nos permitirían finalizar en otros momentos.
 
 Obviamente, si el método solo tiene un camino posible tendrá un solo `return`.
 
-```php
+```injectablephp
 public function isValid(string $luhnCode) : bool
 {
     $inverted = strrev($luhnCode);
@@ -26,9 +32,9 @@ public function isValid(string $luhnCode) : bool
 
 Si el método tiene dos caminos, caben dos posibilidades:
 
-* Uno de los flujos se separa del principal, hace alguna cosa y vuelve de forma natural al tronco para terminar lo que tenga que hacer.
+Uno de los flujos se separa del principal, hace alguna cosa y vuelve de forma natural al tronco para terminar lo que tenga que hacer.
 
-```php
+```injectablephp
 public function forProduct(Client $client, Product $product)
 {
     $contract = new Contract($product);
@@ -41,10 +47,10 @@ public function forProduct(Client $client, Product $product)
 }
 ```
 
-* Uno de los flujos se separa para resolver la tarea de una manera alternativa, por lo que podría devolver el resultado una vez obtenido. Sin embargo, si se sigue el patrón *single return*, hay que forzar que el flujo vuelva al principal antes de retornar.
+Uno de los flujos se separa para resolver la tarea de una manera alternativa, por lo que podría devolver el resultado una vez obtenido. Sin embargo, si se sigue el patrón *single return*, hay que forzar que el flujo vuelva al principal antes de retornar.
 
 
-```php
+```injectablephp
 private function reduceToOneDigit($double) : int
 {
     if ($double >= 10) {
@@ -55,14 +61,13 @@ private function reduceToOneDigit($double) : int
 }
 ```
 
-
 Si el método tiene más de dos caminos se dará una combinación de las posibilidades anteriores, es decir, algunas ramas volverán de forma natural al flujo principal y otras podrían retornar por su cuenta.
 
-En principio, la ventaja del *Single Return* es poder controlar con facilidad que se devuelve el tipo de respuesta correcta, algo que sería más difícil si tenemos muchos lugares con `return` . Pero la verdad es que explicitando *return types* es algo de lo que ni siquiera tendríamos que preocuparnos.
+En principio, la ventaja del *Single Return* es poder controlar con facilidad que se devuelve el tipo de respuesta correcta, algo que sería más difícil si tenemos muchos lugares con `return`. Pero la verdad es que explicitando *return types* es algo de lo que ni siquiera tendríamos que preocuparnos.
 
 En cambio, el mayor problema que tiene _Single Return_ es que fuerza la anidación de condicionales y el uso de `else` hasta extremos exagerados, lo que provoca que el código sea especialmente difícil de leer. Lo peor es que eso no se justifica por necesidades del algoritmo, sino por la gestión del flujo para conseguir que solo se pueda retornar en un punto.
 
-El origen de esta práctica parece que podría ser una mala interpretación del patrón *Single Exit Point* de Djkstra, un patrón que era útil en lenguajes que permitían que las llamadas a subrutinas y sus retornos pudieran hacerse a líneas arbitrarias. Su objetivo era asegurar que se entrase a una subrutina en su primera línea y se volviese siempre a la línea siguiente a la llamada.
+El origen de esta práctica podría ser una mala interpretación del patrón *Single Exit Point* de Djkstra, un patrón que era útil en lenguajes que permitían que las llamadas a subrutinas y sus retornos pudieran hacerse a líneas arbitrarias, con la famosa sentencia `GOTO`. El objetivo de este patrón era asegurar que se entrase a una subrutina en su primera línea y se volviese siempre a la línea siguiente a la llamada.
 
 ## Early return
 
@@ -74,10 +79,7 @@ De este modo, al final nos queda el algoritmo principal ocupando el primer nivel
 
 El mayor inconveniente es la posible inconsistencia que pueda darse en los diferentes _returns_ en cuanto al tipo o formato de los datos, algo que se puede controlar fácilmente forzando un *return type*.
 
-Por otra parte, ganamos en legibilidad, ya que mantenemos bajo control el anidamiento de condicionales y los niveles de indentación.
-
-Además, al tratar primero los casos especiales podemos centrar la atención en el algoritmo principal de ese método.
-
+Por otra parte, ganamos en legibilidad, ya que mantenemos bajo control el anidamiento de condicionales y los niveles de indentación. Además, al tratar primero los casos especiales podemos centrar la atención en el algoritmo principal de ese método.
 
 ## Ejemplo básico
 
@@ -85,7 +87,7 @@ Hace un par de años comencé a practicar un ejercicio para estudiar algoritmos 
 
 En primer lugar, vamos a ver un caso en el que podemos refactorizar un *single return* muy evidente, pero también uno que no lo es tanto:
 
-```php
+```injectablephp
 <?php
 
 namespace Dsa\Algorithms\Sorting;
@@ -131,7 +133,7 @@ class QuickSort
 
 El primer paso es invertir la condicional, para ver la rama más corta en primer lugar. Aquí se ve claramente que cada una de las ramas implica un cálculo diferente de la misma variable, que es lo que se va a devolver al final. El _else_ se introduce porque no queremos que el flujo pase por el bloque grande si `$source` tiene un único elemento o ninguno, ya que no tendríamos necesidad de ordenarlo.
 
-```php
+```injectablephp
 public function sort(array $source)
 {
     $length = count($source);
@@ -158,7 +160,7 @@ public function sort(array $source)
 
 Por esa razón, podríamos simplemente finalizar y retornar el valor de `$source` como que ya está ordenado. Al hacer esto, también podemos eliminar el uso de la variable temporal `$sorted` que es innecesaria.
 
-```php
+```injectablephp
 public function sort(array $source)
 {
     $length = count($source);
@@ -188,13 +190,13 @@ Pero vamos a ir un paso más allá. El bucle `for` contiene una forma velada de 
 
 El algoritmo **quicksort** se basa en hacer pivotar los elementos de la lista en torno a su mediana, es decir, al valor que estaría exactamente en la posición central de la lista ordenada. Para ello, se calcula la mediana de forma aproximada y se van comparando los números para colocarlos en la mitad que les toca: bien por debajo o bien por encima de la mediana.
 
-Para eso se compara cada número con el valor mediano para ver sucesivamente si es igual, menor o mayor, con lo que se añade a la sub-lista correspondiente y se van ordenando esas sub-listas de forma recursiva.
+Para eso se compara cada número con el valor mediano para ver sucesivamente si es igual, menor o mayor, con lo que se añade a la sublista correspondiente y se van ordenando esas sublistas de forma recursiva.
 
 En este caso las cláusulas `else` tienden a hacer más difícil la lectura y, aunque la semántica es correcta, podemos hacerlo un poco más claro.
 
 Como ya sabrás, podemos forzar la salida de un bucle con `continue`:
 
-```php
+```injectablephp
 public function sort(array $source)
 {
     $length = count($source);
@@ -225,7 +227,7 @@ public function sort(array $source)
 Y, aunque en este caso concreto no es especialmente necesario, esta disposición hace que la lectura del bucle sea más cómoda. Incluso es más fácil reordenarlo y que exprese mejor lo que hace:
 
 
-```php
+```injectablephp
 public function sort(array $source): array
 {
     $length = count($source);
@@ -257,17 +259,14 @@ public function sort(array $source): array
 
 En este caso es un _Binary Search Tree_, en el que se nota que no tenía muy claro el concepto de *return early* o, al menos, no lo había aplicado hasta sus últimas consecuencias, por lo que el código no mejora apenas:
 
-```php
+```injectablephp
 <?php
 
 namespace Dsa\Structures;
 
 class BinarySearchTree
 {
-    /**
-     * @var BinarySearchNode
-     */
-    private $root;
+    private BinarySearchNode $root;
 
     public function insert($value)
     {
@@ -298,7 +297,7 @@ class BinarySearchTree
         }
     }
 
-    public function isInTree($value)
+    public function isInTree($value): bool
     {
         if (! $this->root) {
             return false;
@@ -310,7 +309,7 @@ class BinarySearchTree
     public function contains(
         BinarySearchNode $current = null,
         $value
-    ) {
+    ): bool {
         if (! $current) {
             return false;
         }
@@ -372,7 +371,7 @@ class BinarySearchTree
 
 Empecemos mejorando el método `insert`:
 
-```php
+```injectablephp
 public function insert($value)
 {
     $new = new BinarySearchNode($value);
@@ -386,7 +385,7 @@ public function insert($value)
 
 Que podría quedar así:
 
-```php
+```injectablephp
 public function insert($value): void
 {
     $new = new BinarySearchNode($value);
@@ -402,7 +401,7 @@ public function insert($value): void
 
 Al método `insertNew` le sobra indentación:
 
-```php
+```injectablephp
 public function insertNew(
     BinarySearchNode $current,
     BinarySearchNode $new
@@ -425,7 +424,7 @@ public function insertNew(
 
 Empezamos aplicando el *return early* una vez:
 
-```php
+```injectablephp
 public function insertNew(
     BinarySearchNode $current,
     BinarySearchNode $new
@@ -452,7 +451,7 @@ public function insertNew(
 
 Y una segunda vez:
 
-```php
+```injectablephp
 public function insertNew(
     BinarySearchNode $current,
     BinarySearchNode $new
@@ -481,7 +480,7 @@ public function insertNew(
 Otro lugar que necesita un arreglo es el método `findParent`. Aquí hemos usado return early, pero no habíamos sabido aprovecharlo:
 
 
-```php
+```injectablephp
 private function findParent(
     BinarySearchNode $current,
     $value
@@ -508,7 +507,7 @@ private function findParent(
 
 Al hacerlo, nos queda un código más limpio:
 
-```php
+```injectablephp
 private function findParent(
     BinarySearchNode $current,
     $value
@@ -543,7 +542,7 @@ Todos estos refactors se pueden hacer sin riesgo con las herramientas de *Intent
 Finalmente, arreglamos `findNode`, que estaba así:
 
 
-```php
+```injectablephp
     private function findNode(
         BinarySearchNode $current = null,
         $value
@@ -566,7 +565,7 @@ Finalmente, arreglamos `findNode`, que estaba así:
 Y quedará así:
 
 
-```php
+```injectablephp
 private function findNode(
     BinarySearchNode $current = null,
     $value

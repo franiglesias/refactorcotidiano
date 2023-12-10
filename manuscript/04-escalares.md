@@ -38,7 +38,7 @@ Los _value objects_ aportan varias ventajas:
 
 Veamos un objeto típico de cualquier negocio: `Customer` que da lugar a varios ejemplos clásicos de _value object_. Un cliente siempre suele tener un nombre, que acostumbra a ser una combinación de nombre de pila y uno o más apellidos. También tiene una dirección, que es una combinación de unos cuantos datos.
 
-```php
+```injectablephp
 class Customer
 {
     private $id;
@@ -55,7 +55,7 @@ class Customer
 
 El constructor de nuestro `Customer` podría ser muy complicado, y eso que no hemos incluido todos los campos:
 
-```php
+```injectablephp
 class Customer
 {
     private $id;
@@ -121,7 +121,7 @@ Solemos decir que las cosas que cambian juntas deben ir juntas, pero eso tambié
 
 Yo no sé a ti pero a mí esto me pide un _builder_:
 
-```php
+```injectablephp
 class CustomerBuilder
 {
     private $name;
@@ -172,7 +172,7 @@ class CustomerBuilder
 
 _Builder_ que podríamos usar así:
 
-```php
+```injectablephp
 $customerBuilder = new CustomerBuilder();
 
 $customer = $customerBuilder
@@ -197,7 +197,7 @@ El nombre del cliente se puede convertir fácilmente a un _value object_, lo que
 
 Así que podemos crear un _value object_ sencillo:
 
-```php
+```injectablephp
 class PersonName
 {
     /** @var string */
@@ -223,7 +223,7 @@ La validación debe hacerse en el constructor, de modo que solo se puedan instan
 
 Al incluir la validación tendremos el siguiente código:
 
-```php
+```injectablephp
 class PersonName
 {
     /** @var string */
@@ -253,7 +253,7 @@ Para crear el VO `Address` haremos algo parecido y crearemos una clase `Address`
 
 Sin embargo, hemos dicho que podríamos crear un _value object_ en torno al concepto de localidad o código postal, que incluiría el código postal y la ciudad. Obviamente, esto dependerá de nuestro dominio. En algunos casos no nos hará falta esa granularidad porque simplemente queremos disponer de una dirección postal de nuestros clientes para enviar comunicaciones. Pero en otros casos puede ocurrir que nuestro negocio tenga aspectos que dependan de ese concepto, como un servicio cuya tarifa sea función de la ubicación.
 
-```php
+```injectablephp
 class Locality
 {
     /** @var string */
@@ -288,7 +288,7 @@ class Locality
 
 La verdad es que podríamos hilar más fino y declarar un VO `PostalCode`:
 
-```php
+```injectablephp
 class PostalCode
 {
     /** @var string */
@@ -312,7 +312,7 @@ class PostalCode
 
 De modo que `Locality` quedaría así:
 
-```php
+```injectablephp
 class Locality
 {
     /** @var PostalCode */
@@ -341,7 +341,7 @@ En este caso, no consideramos que `PostalCode` sea una dependencia de `Locality`
 
 En fin. Volviendo a nuestro problema original de crear un objeto `Address` podríamos adoptar este enfoque:
 
-```php
+```injectablephp
 class Address
 {
     /** @var string */
@@ -370,7 +370,7 @@ Puesto que `Locality` es un VO no es necesario validarla. Además, aquí no nece
 
 Siempre que un objeto requiere muchos parámetros en su construcción puede ser interesante plantearse si tenemos buenas razones para organizarlos en forma de _value objects_, aplicando el principio de co-variación: si cambian juntos, deberían ir juntos. En este caso, `$street`, `$streetNumber` y `$floor` pueden ir juntos, en forma de `StreetAddress` porque entre los tres componen un concepto útil.
 
-```php
+```injectablephp
 class StreetAddress
 {
     /** @var string */
@@ -394,7 +394,7 @@ class StreetAddress
 
 De este modo, Address se hace más simple y ni siquiera tiene que ocuparse de validar nada:
 
-```php
+```injectablephp
 class Address
 {
     /** @var StreetAddress */
@@ -418,7 +418,7 @@ Volvamos a `Customer`. De momento, el hecho de introducir una serie de _value ob
 
 En este caso, tener a `CustomerBuilder` nos viene muy bien pues encapsula la compleja construcción de Customer, aislándola del resto del código. Podremos refactorizar `Customer` sin afectar a nadie. Empezaremos por el nombre:
 
-```php
+```injectablephp
 class Customer
 {
     private $id;
@@ -470,7 +470,7 @@ class Customer
 
 Como podemos ver, para empezar el constructor ya es más simple. Además, el método `fullName` puede delegarse al disponible en el objeto `PersonName`, que se puede ocupar cómodamente de cualquier variante o formato particular que necesitemos a lo largo de la aplicación.
 
-```php
+```injectablephp
 class PersonName
 {
     /** @var string */
@@ -505,7 +505,7 @@ class PersonName
 
 Es por esto que decimos que los _value objects_ "atraen" comportamientos, ya que cualquier cosa que las clases usuarias necesiten puede encapsularse en el propio VO. Si necesitásemos el nombre en un formato apto para listas podríamos hacer lo siguiente:
 
-```php
+```injectablephp
 class PersonName implements PersonNameInterface
 {
     /** @var string */
@@ -555,7 +555,7 @@ class PersonName implements PersonNameInterface
 
 Como tenemos un Builder que encapsula la construcción de `Customer`, lo que hacemos es modificar esa construcción de acuerdo al nuevo diseño:
 
-```php
+```injectablephp
 class CustomerBuilder
 {
     private $personName;
@@ -600,7 +600,7 @@ class CustomerBuilder
 
 Fíjate que he dejado el método `withName` tal y como estaba. De esta forma, no cambio la interfaz pública de `CustomerBuilder`, como tampoco cambia la de `Customer` salvo en el constructor, y el código que lo usa no se enterará del cambio. En otras palabras, el ejemplo anterior funcionará exactamente igual:
 
-```php
+```injectablephp
 $customerBuilder = new CustomerBuilder();
 
 $customer = $customerBuilder
@@ -611,7 +611,7 @@ $customer = $customerBuilder
 
 Por supuesto, haríamos lo mismo con el VO Address. Así queda Customer:
 
-```php
+```injectablephp
 class Customer
 {
     private $id;
@@ -644,7 +644,7 @@ class Customer
 
 El método `full` en `Address` lo resuelvo mediante un *type casting* a string de sus componentes, que es una manera sencilla de disponer de su valor en un formato escalar estándar:
 
-```php
+```injectablephp
 class Address
 {
     /** @var StreetAddress */
@@ -667,7 +667,7 @@ class Address
 
 En este caso necesitaremos:
 
-```php
+```injectablephp
 class StreetAddress
 {
     /** @var string */
@@ -702,7 +702,7 @@ class StreetAddress
 
 Y también:
 
-```php
+```injectablephp
 class PostalCode
 {
     /** @var string */
@@ -731,7 +731,7 @@ class PostalCode
 
 Así como:
 
-```php
+```injectablephp
 class Locality
 {
     /** @var PostalCode */
@@ -763,7 +763,7 @@ class Locality
 
 Del mismo modo que antes, modificaremos `CustomerBuilder` para utilizar los nuevos objetos:
 
-```php
+```injectablephp
 class CustomerBuilder
 {
     private $personName;
@@ -817,7 +817,7 @@ Es importante tratar bien a los clientes, por lo que nos han pedido incluir una 
 
 Supongamos que `Customer` tiene un método `treatment` al que recurrimos para montar emails o cartas:
 
-```php
+```injectablephp
 public function treatment(): string 
 {
     return $this->personName->treatment();
@@ -826,7 +826,7 @@ public function treatment(): string
 
 Primero queremos un nuevo _value object_, que será Gender:
 
-```php
+```injectablephp
 class Gender
 {
     /** @var string */
@@ -863,7 +863,7 @@ class Gender
 
 Este tipo de _value object_ será un _enumerable_. Representa conceptos que tienen un número limitado (numerable) de valores. El siguiente paso es hacer que la clase `PersonName` implemente una interfaz `PersonNameInterface`:
 
-```php
+```injectablephp
 interface PersonNameInterface
 {
     public function fullName() : string;
@@ -875,7 +875,7 @@ interface PersonNameInterface
 
 Y hacemos que Customer la utilice. Es un cambio pequeño, que nos permitirá usar implementaciones alternativas:
 
-```php
+```injectablephp
 class Customer
 {
     private string $id;
@@ -911,7 +911,7 @@ class Customer
 
 Ahora, crearemos un tipo de `PersonName` que sepa algo acerca del género del nombre:
 
-```php
+```injectablephp
 class GenderMarkedPersonName implements PersonNameInterface
 {
     private Gender $gender;
@@ -947,7 +947,7 @@ class GenderMarkedPersonName implements PersonNameInterface
 
 Y ahora, el último cambio, en el Builder usaremos la nueva implementación:
 
-```php
+```injectablephp
 class CustomerBuilder
 {
     private PersonName $personName;
