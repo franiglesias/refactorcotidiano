@@ -42,7 +42,7 @@ En ese sentido, los *value objects* y *entidades*, de los que hemos hablado tant
 
 Supongamos que en nuestro negocio estamos interesados en ofrecer ciertos productos o ventajas a usuarios cuya cuenta de correo pertenezca a ciertos dominios, por ejemplo perteneciente a su cuenta corporativa. El correo electrónico es, pues, un concepto importante del negocio y lo representamos mediante un _value object_:
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -81,7 +81,7 @@ class Email
 
 En un determinado servicio verificamos que el dominio del correo electrónico del usuario se encuentra dentro de la lista de dominios beneficiados de este tratamiento especial.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -102,7 +102,7 @@ class OfferPromotion
 
 El problema aquí es que el servicio tiene que ocuparse de obtener el dominio de la dirección de correo, cosa que no tendría que ser de su incumbencia. La clase `Email` nos está pidiendo a gritos convertirse en la experta en calcular la parte del dominio del correo:
 
-```injectablephp
+```php
 <?php
 <?php
 declare(strict_types=1);
@@ -149,7 +149,7 @@ class Email
 
 Nos basta con esto para hacer más expresivo nuestro servicio, pero aún podemos hacerlo mejor:
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -178,7 +178,7 @@ Desde el punto de vista del negocio la regla relaciona clientes, seleccionados p
 
 Ese conocimiento se puede encapsular en una **Specification**, que no es más que un objeto que puede decidir si otro objeto cumple una serie de condiciones. El objeto en que estamos interesadas es `Customer` y para el contexto de esta regla, nos interesa poder preguntarle por su dominio de correo.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -210,7 +210,7 @@ Ahora el conocimiento de la regla de negocio se encuentra en un solo lugar y lo 
 
 [^fn-spec]: Una objeción que se puede poner a este código es que instanciamos la _Specification_. Normalmente, lo mejor sería inyectar en el servicio una factoría de _Specification_ para pedirle las que necesitemos y que sea la factoría la que gestione sus posibles dependencias.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 

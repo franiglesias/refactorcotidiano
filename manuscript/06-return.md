@@ -18,7 +18,7 @@ Se trata de que en cada método o función solo tengamos un único `return`, a p
 
 Obviamente, si el método solo tiene un camino posible tendrá un solo `return`.
 
-```injectablephp
+```php
 public function isValid(string $luhnCode) : bool
 {
     $inverted = strrev($luhnCode);
@@ -34,7 +34,7 @@ Si el método tiene dos caminos, caben dos posibilidades:
 
 Uno de los flujos se separa del principal, hace alguna cosa y vuelve de forma natural al tronco para terminar lo que tenga que hacer.
 
-```injectablephp
+```php
 public function forProduct(Client $client, Product $product)
 {
     $contract = new Contract($product);
@@ -50,7 +50,7 @@ public function forProduct(Client $client, Product $product)
 Uno de los flujos se separa para resolver la tarea de una manera alternativa, por lo que podría devolver el resultado una vez obtenido. Sin embargo, si se sigue el patrón *single return*, hay que forzar que el flujo vuelva al principal antes de retornar.
 
 
-```injectablephp
+```php
 private function reduceToOneDigit($double) : int
 {
     if ($double >= 10) {
@@ -87,7 +87,7 @@ Hace un par de años comencé a practicar un ejercicio para estudiar algoritmos 
 
 En primer lugar, vamos a ver un caso en el que podemos refactorizar un *single return* muy evidente, pero también uno que no lo es tanto:
 
-```injectablephp
+```php
 <?php
 
 namespace Dsa\Algorithms\Sorting;
@@ -133,7 +133,7 @@ class QuickSort
 
 El primer paso es invertir la condicional, para ver la rama más corta en primer lugar. Aquí se ve claramente que cada una de las ramas implica un cálculo diferente de la misma variable, que es lo que se va a devolver al final. El _else_ se introduce porque no queremos que el flujo pase por el bloque grande si `$source` tiene un único elemento o ninguno, ya que no tendríamos necesidad de ordenarlo.
 
-```injectablephp
+```php
 public function sort(array $source)
 {
     $length = count($source);
@@ -160,7 +160,7 @@ public function sort(array $source)
 
 Por esa razón, podríamos simplemente finalizar y retornar el valor de `$source` como que ya está ordenado. Al hacer esto, también podemos eliminar el uso de la variable temporal `$sorted` que es innecesaria.
 
-```injectablephp
+```php
 public function sort(array $source)
 {
     $length = count($source);
@@ -196,7 +196,7 @@ En este caso las cláusulas `else` tienden a hacer más difícil la lectura y, a
 
 Como ya sabrás, podemos forzar la salida de un bucle con `continue`:
 
-```injectablephp
+```php
 public function sort(array $source)
 {
     $length = count($source);
@@ -227,7 +227,7 @@ public function sort(array $source)
 Y, aunque en este caso concreto no es especialmente necesario, esta disposición hace que la lectura del bucle sea más cómoda. Incluso es más fácil reordenarlo y que exprese mejor lo que hace:
 
 
-```injectablephp
+```php
 public function sort(array $source): array
 {
     $length = count($source);
@@ -259,7 +259,7 @@ public function sort(array $source): array
 
 En este caso es un _Binary Search Tree_, en el que se nota que no tenía muy claro el concepto de *return early* o, al menos, no lo había aplicado hasta sus últimas consecuencias, por lo que el código no mejora apenas:
 
-```injectablephp
+```php
 <?php
 
 namespace Dsa\Structures;
@@ -371,7 +371,7 @@ class BinarySearchTree
 
 Empecemos mejorando el método `insert`:
 
-```injectablephp
+```php
 public function insert($value)
 {
     $new = new BinarySearchNode($value);
@@ -385,7 +385,7 @@ public function insert($value)
 
 Que podría quedar así:
 
-```injectablephp
+```php
 public function insert($value): void
 {
     $new = new BinarySearchNode($value);
@@ -401,7 +401,7 @@ public function insert($value): void
 
 Al método `insertNew` le sobra indentación:
 
-```injectablephp
+```php
 public function insertNew(
     BinarySearchNode $current,
     BinarySearchNode $new
@@ -424,7 +424,7 @@ public function insertNew(
 
 Empezamos aplicando el *return early* una vez:
 
-```injectablephp
+```php
 public function insertNew(
     BinarySearchNode $current,
     BinarySearchNode $new
@@ -451,7 +451,7 @@ public function insertNew(
 
 Y una segunda vez:
 
-```injectablephp
+```php
 public function insertNew(
     BinarySearchNode $current,
     BinarySearchNode $new
@@ -480,7 +480,7 @@ public function insertNew(
 Otro lugar que necesita un arreglo es el método `findParent`. Aquí hemos usado return early, pero no habíamos sabido aprovecharlo:
 
 
-```injectablephp
+```php
 private function findParent(
     BinarySearchNode $current,
     $value
@@ -507,7 +507,7 @@ private function findParent(
 
 Al hacerlo, nos queda un código más limpio:
 
-```injectablephp
+```php
 private function findParent(
     BinarySearchNode $current,
     $value
@@ -542,7 +542,7 @@ Todos estos refactors se pueden hacer sin riesgo con las herramientas de *Intent
 Finalmente, arreglamos `findNode`, que estaba así:
 
 
-```injectablephp
+```php
     private function findNode(
         BinarySearchNode $current = null,
         $value
@@ -565,7 +565,7 @@ Finalmente, arreglamos `findNode`, que estaba así:
 Y quedará así:
 
 
-```injectablephp
+```php
 private function findNode(
     BinarySearchNode $current = null,
     $value

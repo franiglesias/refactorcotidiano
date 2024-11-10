@@ -40,7 +40,7 @@ En lugar de esto, deberíamos usar un **Value Object**, como vimos en el capítu
 
 Nuestra primera iteración es simple, definimos una clase `Status` que contiene un valor *string*.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -61,7 +61,7 @@ class Status
 
 Personalmente, me gusta añadir un método `__toString` a los VO para poder hacer el *type cast* si lo necesito.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -87,7 +87,7 @@ class Status
 
 Tenemos que definir cuáles son los valores aceptables para este VO, lo cual podemos hacer mediante constantes de clase. Definiremos una para cada valor válido y una extra que será un simple array que los agrupa, lo que nos facilitará la validación.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -126,7 +126,7 @@ Por otro lado, está el tema de las constantes públicas. Es una cuestión de co
 
 Nuestro siguiente paso debería ser implementar la validación que nos garantice que podemos instanciar solo valores correctos.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -164,7 +164,7 @@ class Status
 
 Como se puede ver, es muy sencillo, ya que simplemente comprobamos si el valor aportado está en la lista de valores admitidos. Pero, como es un *string*, podríamos tener algún problema en caso de que nos pasen el dato con alguna mayúscula. En estos casos, no está de más, realizar una normalización básica. Tampoco se trata de arreglar el input externo, pero sí de prevenir alguno de los errores habituales.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -205,7 +205,7 @@ class Status
 
 Para terminar con lo básico, necesitamos un método para comprobar la igualdad, así como un método para obtener su valor escalar si fuese preciso.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -262,7 +262,7 @@ Hay algunas cosas interesantes que podemos hacer con los **enumerables**, a fin 
 
 Por ejemplo, podemos querer tener *named constructors* que hagan más explícita la forma de creación.
 
-```injectablephp
+```php
 public static function fromString(string $status): Status
 {
     return new self($status);
@@ -271,7 +271,7 @@ public static function fromString(string $status): Status
 
 Puesto que son pocos valores, podríamos permitirnos tener *named constructors* para crear directamente instancias con un valor determinado:
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -359,7 +359,7 @@ Como hemos dicho, este tipo de reglas de negocio pueden encapsularse en el propi
 
 Veamos el ejemplo lineal. Supongamos un `ContractStatus` que admite tres estados que se suceden en una única secuencia. Podemos tener un método en el Enumerable para avanzar un paso el estado:
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -427,7 +427,7 @@ Para nuestro ejemplo vamos a imaginar que un contrato puede volver atrás un pas
 
 Esta implementación es bastante tosca, pero creo que representa con claridad la intención. El método `changeTo` nos permite pasarle un nuevo `ContractStatus` y nos lo devuelve si el cambio es válido o bien lanza una excepción.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -516,7 +516,7 @@ class ContractStatus
 
 En esencia, el método `changeTo` valida que el estado se pueda cambiar teniendo en cuenta el estado actual. La idea de fondo es aplicar el principio `Tell, don't ask`, de modo que no le preguntemos al contrato por su estado, ni a `ContractStatus` por su valor, si no que le decimos que cambie a un nuevo estado si es posible. En caso de fallo, ya tomaremos nosotros las medidas necesarias.
 
-```injectablephp
+```php
 try {
     $newStatus = new ContractStatus('finalized');
     
@@ -533,7 +533,7 @@ try {
 
 Un enfoque pragmático, cuando las combinaciones de valores/versiones son reducidas, sería incorporar esa capacidad al propio Enumerable, mediante un named constructor específico y un método para obtener esa versión del valor.
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -607,7 +607,7 @@ Aunque la solución que acabamos de ver resulta práctica en ciertos casos, lo c
 
 Nos hace falta algún tipo de traductor:
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -640,7 +640,7 @@ Si bien usar enumerables es una mejora sustancial con respecto a usar primitivos
 Tomemos el ejemplo anterior:
 
 
-```injectablephp
+```php
 <?php
 declare(strict_types=1);
 
@@ -728,7 +728,7 @@ class ContractStatus
 
 `ContractStatus` se convierte en una interfaz, que será implementada por las clases: `Presigned`, `Signed` y `Finalized`.
 
-```injectablephp
+```php
 interface ContractStatus {
     public function forward(): ContractStatus;
     public function changeTo($status ContractStatus): ContractStatus;
@@ -738,7 +738,7 @@ interface ContractStatus {
 
 Aquí tenemos un ejemplo de una de esas clases.
 
-```injectablephp
+```php
 class Presigned implements ContractStatus
 {
     public function forward(): ContractStatus
@@ -774,7 +774,7 @@ class Presigned implements ContractStatus
 
 Necesitaremos una factoría para instanciar los objetos adecuados si, por ejemplo, cargamos la información desde una base de datos, o 
 
-```injectablephp
+```php
 final class ContractStatusFactory
 {
     public function make($status string)

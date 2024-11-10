@@ -27,7 +27,7 @@ Otras reglas prácticas que podemos aplicar son:
 
 Si una estructura condicional nos lleva por una rama muy corta en caso de cumplirse y por una muy larga en el caso contrario, se recomienda que la rama corta sea la primera, para evitar que pase desapercibida. Por ejemplo, este fragmento tan feo:
 
-```injectablephp
+```php
 if ($selectedPaymentMethod == null) {
     $logger = Logger::getInstance();
     $logger->debug("Medio de pago desconocido");
@@ -41,7 +41,7 @@ if ($selectedPaymentMethod == null) {
 
 Podría reescribirse así:
 
-```injectablephp
+```php
 if (null !== $selectedPaymentMethod) {
     $paymentMethod = $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();    
 } else {
@@ -59,7 +59,7 @@ Si estamos dentro de una función o método y podemos hacer el retorno desde den
 
 Imaginemos que tras el código anterior tenemos un `return`, no hace falta que sea inmediatamente después:
 
-```injectablephp
+```php
 if (null !== $selectedPaymentMethod) {
     $paymentMethod = $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();    
 } else {
@@ -77,7 +77,7 @@ return $paymentMethod;
 
 En realidad, en la primera rama ya podríamos volver sin problemas porque lo que devolvemos el `$paymentMethods`, lo que nos permite eliminar la cláusula `else`, reduciendo la indentación del código.
 
-```injectablephp
+```php
 if (null !== $selectedPaymentMethod) {
     $paymentMethod = $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
     
@@ -98,7 +98,7 @@ return $paymentMethod;
 
 Además, no hace falta crear ni poblar una variable temporal, gracias a lo cual podemos devolver directamente la respuesta obtenida, aplicando lo mismo a la condicional que podemos ver al final:
 
-```injectablephp
+```php
 if (null !== $selectedPaymentMethod) {
     return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
 } 
@@ -120,7 +120,7 @@ Un uso habitual de esta técnica es la de tratar casos particulares o que sean o
 
 En muchas ocasiones, cuando los datos tienen que ser validados antes de operar con ellos, podemos encapsular esas condiciones que dan lugar a excepciones en forma de cláusulas de guarda. Estas cláusulas de guarda, también se conocen como aserciones, o precondiciones. Si los parámetros no las cumplen, el método o función falla lanzando excepciones.
 
-```injectablephp
+```php
     if ($parameter > 100 || $parameter < 0) {
         throw new OutOfRangeException(sprintf('Parameter should be between 0 and 100 (inc), %s provided.', $parameter));
     }
@@ -130,7 +130,7 @@ En muchas ocasiones, cuando los datos tienen que ser validados antes de operar c
 
 Extraemos toda la estructura a un método privado:
 
-```injectablephp
+```php
 $this->checkTheParameterIsInRange($parameter);
 
 // further processing
@@ -147,7 +147,7 @@ La lógica bajo este tipo de cláusulas es que si no salta ninguna excepción, q
 
 Una alternativa es usar una librería de aserciones, lo que nos permite hacer lo mismo de una forma más limpia y normalizada. Si la aserción no se cumple, se tirará una excepción:
 
-```injectablephp
+```php
 Assert::betweenExclusive($parameter, 0, 100)
 ```
 
@@ -155,7 +155,7 @@ Una limitación de las aserciones que debemos tener en cuenta es nunca usarlas p
 
 En el caso de necesitar una alternativa si el parámetro no cumple los requisitos, utilizaremos condicionales. Aquí lo podemos ver, si el parámetro excede los límites queremos que se ajuste al límite que ha superado: 
 
-```injectablephp
+```php
 $parameter = $this->checkTheParameterIsInRange($parameter);
 
 // further processing
@@ -180,7 +180,7 @@ Diversos estudios han mostrado que las frases afirmativas son más fáciles de e
 
 Con frecuencia, además, la sintaxis de la negación puede hacerlas poco visibles:
 
-```injectablephp
+```php
 if (!$selectedPaymentMethod) {
     return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
 } 
@@ -188,7 +188,7 @@ if (!$selectedPaymentMethod) {
 
 En uno de los ejemplos anteriores habíamos llegado a la siguiente construcción invirtiendo la condicional lo que resultó en una doble negación especialmente difícil de leer:
 
-```injectablephp
+```php
 if (null !== $selectedPaymentMethod) {
     return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
 } 
@@ -196,7 +196,7 @@ if (null !== $selectedPaymentMethod) {
 
 Nosotros lo que queremos es devolver el método de pago en caso de tener uno seleccionado:
 
-```injectablephp
+```php
 if ($selectedPaymentMethod) {
     return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
 } 
@@ -204,7 +204,7 @@ if ($selectedPaymentMethod) {
 
 Una forma alternativa, si la condición es compleja o simplemente difícil de entender tal cual es encapsularla en un método:
 
-```injectablephp
+```php
 if ($this->userHasSelectedAPaymentMethod($selectedPaymentMethod)) {
     return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
 } 
@@ -223,7 +223,7 @@ Justo en el apartado anterior hemos visto un ejemplo de esto mismo, haciendo exp
 
 Veamos otro caso en el mismo ejemplo, la extraña condicional:
 
-```injectablephp
+```php
 if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
     return PaymentTypes::PAYPAL;
 }
@@ -234,7 +234,7 @@ if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
 
 Podría ser un poco más explicativa encapsulada en un método:
 
-```injectablephp
+```php
 if (legacyOrdersWithDestinationFrance($order)) {
     return PaymentTypes::PAYPAL;
 }
@@ -249,7 +249,7 @@ private function legacyOrdersWithDestinationFrance($order)
 
 Esto deja el bloque de esta manera:
 
-```injectablephp
+```php
 if ($selectedPaymentMethod) {
     return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
 } 
@@ -277,7 +277,7 @@ Consiste en encapsular todo el bloque de código de cada rama de ejecución en s
 
 Este fragmento de código, que está bastante limpio, podría clarificarse un poco, encapsulando tanto las condiciones como la rama:
 
-```injectablephp
+```php
 if ($productStatus == OrderStatuses::PROVIDER_PENDING ||
     $productStatus == OrderStatuses::PENDING ||
     $productStatus == OrderStatuses::WAITING_FOR_PAYMENT
@@ -299,7 +299,7 @@ if ($productStatus == OrderStatuses::PROVIDER_PENDING ||
 
 Veamos como:
 
-```injectablephp
+```php
 if ($this->productIsInPendingStatus($productStatus)) {
     return $this->reportForProductInPendingStatus($paymentMethod);
 }
@@ -338,7 +338,7 @@ Si hacemos esto en todas las ramas de una condicional o de un switch las dejarem
 
 En muchos casos, sucesiones de `if` o `if…else` quedarán mejor expresados mediante una estructura `switch`. Por ejemplo, siguiendo con el ejemplo anterior, este método que hemos extraído:
 
-```injectablephp
+```php
 private function reportForProductInPendingStatus(paymentMethod)
 {
     if ($paymentMethod == PaymentTypes::BANK_TRANSFER) {
@@ -358,7 +358,7 @@ private function reportForProductInPendingStatus(paymentMethod)
 
 Podría convertirse en algo así:
 
-```injectablephp
+```php
 private function reportForProductInPendingStatus(paymentMethod)
 {
     switch $paymentMethod {
@@ -382,7 +382,7 @@ private function reportForProductInPendingStatus(paymentMethod)
 
 A veces, un operador ternario puede ser más legible que una condicional:
 
-```injectablephp
+```php
 function selectElement(Criteria $criteria, Desirability $desirability)
 {
     $found = false;
@@ -405,7 +405,7 @@ function selectElement(Criteria $criteria, Desirability $desirability)
 
 Realmente las últimas líneas pueden expresarse en una sola y queda más claro:
 
-```injectablephp
+```php
 function selectElement(Criteria $criteria, Desirability $desirability)
 {
     $found = false;
@@ -427,7 +427,7 @@ El operador ternario tiene sus problemas, pero, en general, es una buena soluci�
 
 De todos modos, este ejemplo concreto de código puede mejorar mucho. Si nos fijamos, el primer elemento encontrado ya nos basta como respuesta, por lo que se podría devolver inmediatamente. No necesitamos ninguna variable temporal, ni una doble condición. Este tipo de refactor lo veremos en el capítulo sobre _return early_.
 
-```injectablephp
+```php
 function selectElement(Criteria $criteria, Desirability $desirability)
 { 
     foreach($this->getElements($criteria) as $element) {
@@ -440,7 +440,7 @@ function selectElement(Criteria $criteria, Desirability $desirability)
 }
 ```
 
-## Sólo un `if` por método
+## Solo un `if` por método
 
 Christian Clausen en [Five Lines of Code](https://www.manning.com/books/five-lines-of-code) propone un refactor para condicionales que puede ser muy interesante. Con frecuencia, una estructura condicional indica que una función está haciendo varias cosas distintas.
 
