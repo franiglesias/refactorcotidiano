@@ -17,125 +17,173 @@ En general, como regla práctica, hay que refactorizar condicionales cuando su l
 * **La expresión condicional**: qué define lo que tiene que pasar para que el flujo se dirija por una o por otra rama.
 * **Las ramas**: las diferentes acciones que se deben ejecutar en caso de cumplirse o no la condición.
 
-Otras reglas prácticas que podemos aplicar son:
+También podemos aplicar alguna de las reglas de _object calisthenics_:
 
-**Aplanar niveles de indentación**: cuanto menos anidamiento en el código, más fácil de leer es porque indica que no estamos mezclando niveles de abstracción.
+**Aplanar niveles de indentación**: cuanto menos anidamiento en el código, más fácil de leer es porque indica que no estamos mezclando niveles de abstracción. El objetivo sería tener un solo nivel de indentación en cada método o función.
 
 **Eliminar `else`**: en muchos casos, es posible eliminar ramas alternativas, bien directamente, bien encapsulando toda la estructura en un método o función.
+
+Vamos a ver como podemos proceder a refactorizar condicionales de una forma sistemática.
 
 ## La rama corta primero
 
 Si una estructura condicional nos lleva por una rama muy corta en caso de cumplirse y por una muy larga en el caso contrario, se recomienda que la rama corta sea la primera, para evitar que pase desapercibida. Por ejemplo, este fragmento tan feo:
 
 ```php
-if ($selectedPaymentMethod == null) {
-    $logger = Logger::getInstance();
-    $logger->debug("Medio de pago desconocido");
-    if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-        $paymentMethod = PaymentTypes::PAYPAL;
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod === null) {
+        $logger = Logger::getInstance();
+        $logger->debug("Medio de pago desconocido");
+        if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
+            $paymentMethod = PaymentTypes::PAYPAL;
+        } else {
+            $paymentMethod = new DefaultPaymentMethod();
+        }
+    } else {
+        $paymentMethod = $selectedPaymentMethod;
     }
-} else {
-    $paymentMethod = $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
+    
+    return $paymentMethod;
 }
 ```
 
-Podría reescribirse así:
+Podría reescribirse así y ahora es más fácil ver la rama corta. Esto nos va a encaminar hacia otras refactorizaciones que veremos más adelante:
 
 ```php
-if (null !== $selectedPaymentMethod) {
-    $paymentMethod = $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();    
-} else {
-    $logger = Logger::getInstance();
-    $logger->debug("Medio de pago desconocido");
-    if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-        $paymentMethod = PaymentTypes::PAYPAL;
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        $paymentMethod = $selectedPaymentMethod;
+    } else {
+        $logger = Logger::getInstance();
+        $logger->debug("Medio de pago desconocido");
+        if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
+            $paymentMethod = PaymentTypes::PAYPAL;
+        } else {
+            $paymentMethod = new DefaultPaymentMethod();
+        }
     }
+    
+    return $paymentMethod;
 }
 ```
 
 ## Return early
 
-Si estamos dentro de una función o método y podemos hacer el retorno desde dentro de una rama es preferible hacerlo. Con eso podemos evitar el `else` y hacer que el código vuelva al nivel de indentación anterior, mejor si es el primero, lo que facilitará la lectura.
-
-Imaginemos que tras el código anterior tenemos un `return`, no hace falta que sea inmediatamente después:
+Si estamos dentro de una función o método y podemos hacer el retorno desde dentro de una rama es preferible hacerlo. Con eso podemos evitar la cláusula `else` y hacer que el código vuelva al nivel de indentación anterior, lo que facilitará la lectura. Veámoslo aplicado al ejemplo anterior:
 
 ```php
-if (null !== $selectedPaymentMethod) {
-    $paymentMethod = $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();    
-} else {
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        $paymentMethod = $selectedPaymentMethod;
+        
+        return $paymentMethod;
+    } else {
+        $logger = Logger::getInstance();
+        $logger->debug("Medio de pago desconocido");
+        if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
+            $paymentMethod = PaymentTypes::PAYPAL;
+        } else {
+            $paymentMethod = new DefaultPaymentMethod();
+        }
+    }
+    
+    return $paymentMethod;
+}
+```
+
+No hace falta mantener la variable temporal, pues podemos devolver directamente la respuesta obtenida:
+
+```php
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        return $selectedPaymentMethod;
+    } else {
+        $logger = Logger::getInstance();
+        $logger->debug("Medio de pago desconocido");
+        if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
+            $paymentMethod = PaymentTypes::PAYPAL;
+        } else {
+            $paymentMethod = new DefaultPaymentMethod();
+        }
+        
+        return $paymentMethod;
+    }
+}
+```
+
+Y, por último, podemos eliminar la cláusula `else` y dejarlo así.
+
+```php
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        return $selectedPaymentMethod;
+    }
+    
     $logger = Logger::getInstance();
     $logger->debug("Medio de pago desconocido");
     if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
         $paymentMethod = PaymentTypes::PAYPAL;
+    } else {
+        $paymentMethod = new DefaultPaymentMethod();
     }
-}
-
-// Some more code to get a value for $paymentMethod
-
-return $paymentMethod;
-```
-
-En realidad, en la primera rama ya podríamos volver sin problemas porque lo que devolvemos el `$paymentMethods`, lo que nos permite eliminar la cláusula `else`, reduciendo la indentación del código.
-
-```php
-if (null !== $selectedPaymentMethod) {
-    $paymentMethod = $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
     
-    return $paymentMethod;    
-} 
-
-$logger = Logger::getInstance();
-$logger->debug("Medio de pago desconocido");
-
-if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-    $paymentMethod = PaymentTypes::PAYPAL;
+    return $paymentMethod;
 }
-
-// Some more code to get a value for $paymentMethod
-
-return $paymentMethod;
 ```
 
-Además, no hace falta crear ni poblar una variable temporal, gracias a lo cual podemos devolver directamente la respuesta obtenida, aplicando lo mismo a la condicional que podemos ver al final:
+Aplicando el mismo principio, reducimos la complejidad aportada por la condicional final, retornando directamente y eliminando tanto `else` como las variables temporales:
 
 ```php
-if (null !== $selectedPaymentMethod) {
-    return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
-} 
-
-$logger = Logger::getInstance();
-$logger->debug("Medio de pago desconocido");
-
-if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-    return PaymentTypes::PAYPAL;
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        return $selectedPaymentMethod;
+    }
+    
+    $logger = Logger::getInstance();
+    $logger->debug("Medio de pago desconocido");
+    
+    if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
+        return PaymentTypes::PAYPAL;
+    }
+    
+    return new DefaultPaymentMethod();
 }
-
-// Some more code to get a value for $paymentMethod
-
 ```
 
-Un uso habitual de esta técnica es la de tratar casos particulares o que sean obvios en los primeros pasos del algoritmo, volviendo al flujo principal cuanto antes, de modo que el algoritmo solo recibe aquellos casos a los que se aplica realmente.
+El contexto habitual de esta técnica es la de tratar casos particulares o que sean obvios en los primeros pasos del algoritmo, volviendo al flujo principal cuanto antes, de modo que solo recibe aquellos casos a los que se aplica realmente. Una variante de esta idea consiste en la introducción de las cláusulas de guarda, que veremos a continuación.
 
 ### Cláusulas de guarda
 
-En muchas ocasiones, cuando los datos tienen que ser validados antes de operar con ellos, podemos encapsular esas condiciones que dan lugar a excepciones en forma de cláusulas de guarda. Estas cláusulas de guarda, también se conocen como aserciones, o precondiciones. Si los parámetros no las cumplen, el método o función falla lanzando excepciones.
+En muchas ocasiones, cuando los datos tienen que ser validados antes de operar con ellos, podemos encapsular esas condiciones en forma de cláusulas de guarda. Estas cláusulas de guarda, también se conocen como aserciones, o precondiciones. Si los parámetros recibidos no las cumplen, el método o función falla, generalmente, lanzando excepciones.
 
 ```php
+public function applyDiscount($parameter)
+{
     if ($parameter > 100 || $parameter < 0) {
         throw new OutOfRangeException(sprintf('Parameter should be between 0 and 100 (inc), %s provided.', $parameter));
     }
-
-// further processing
+    
+    // further processing
+}
 ```
 
 Extraemos toda la estructura a un método privado:
 
 ```php
-$this->checkTheParameterIsInRange($parameter);
+public function applyDiscount($parameter)
+{
+    $this->checkParameterIsInRange($parameter);
+        
+    // further processing
+}
 
-// further processing
-
-private function checkTheParameterIsInRange(int $parameter)
+private function checkParameterIsInRange($parameter) 
 {
     if ($parameter > 100 || $parameter < 0) {
         throw new OutOfRangeException(sprintf('Parameter should be between 0 and 100 (inc), %s provided.', $parameter));
@@ -145,15 +193,21 @@ private function checkTheParameterIsInRange(int $parameter)
 
 La lógica bajo este tipo de cláusulas es que si no salta ninguna excepción, quiere decir que `$parameter` ha superado todas las validaciones y lo puedes usar con confianza. La ventaja es que las reglas de validación definidas con estas técnicas resultan muy expresivas, ocultando los detalles técnicos en los métodos extraídos.
 
-Una alternativa es usar una librería de aserciones, lo que nos permite hacer lo mismo de una forma más limpia y normalizada. Si la aserción no se cumple, se tirará una excepción:
+Una alternativa es usar una librería de aserciones, lo que nos permite hacer lo mismo de una forma aún más limpia y reutilizable. Si la aserción no se cumple, se tirará una excepción:
 
 ```php
-Assert::betweenExclusive($parameter, 0, 100)
+public function applyDiscount($parameter)
+{
+    Assert::betweenExclusive($parameter, 0, 100);
+        
+    // further processing
+}
+
 ```
 
-Una limitación de las aserciones que debemos tener en cuenta es nunca usarlas para control de flujo. Esto es, las aserciones fallan con una excepción, interrumpiendo la ejecución del programa, que así puede comunicar al módulo llamante una circunstancia que impide continuar. Por eso, las aserciones son ideales para validar precondiciones.
+Una limitación de las aserciones que debemos tener en cuenta es que no sirven para control de flujo. Esto es, las aserciones fallan con una excepción, interrumpiendo la ejecución del programa, que así puede comunicar al módulo llamante una circunstancia que impide continuar. Por eso, las aserciones son ideales para validar precondiciones.
 
-En el caso de necesitar una alternativa si el parámetro no cumple los requisitos, utilizaremos condicionales. Aquí lo podemos ver, si el parámetro excede los límites queremos que se ajuste al límite que ha superado: 
+En el caso de necesitar una alternativa si el parámetro no cumple los requisitos, utilizaremos condicionales. Por ejemplo, si el parámetro excede los límites queremos que se ajuste al límite que ha superado, en vez de fallar: 
 
 ```php
 $parameter = $this->checkTheParameterIsInRange($parameter);
@@ -174,23 +228,23 @@ private function checkTheParameterIsInRange(int $parameter)
 }
 ```
 
+Finalmente, ten en cuenta que el tipado ya es una guarda en sí misma, por lo que no necesitas verificar el tipo de un parámetro si ya lo has tipado correctamente.
+
 ## Preferir condiciones afirmativas
 
-Diversos estudios han mostrado que las frases afirmativas son más fáciles de entender que las negativas, por lo que siempre que sea posible deberíamos intentar convertir la condición en afirmativa bien sea invirtiéndola, bien encapsulándola de modo que se exprese de manera afirmativa.
-
-Con frecuencia, además, la sintaxis de la negación puede hacerlas poco visibles:
+Diversos estudios han mostrado que las frases afirmativas son más fáciles de entender que las negativas, por lo que siempre que sea posible deberíamos intentar convertir la condición en afirmativa ya sea invirtiéndola, ya sea encapsulándola de modo que se exprese de manera afirmativa. Con frecuencia, además, la particular sintaxis de la negación puede hacerlas poco visibles:
 
 ```php
 if (!$selectedPaymentMethod) {
-    return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
+    return $selectedPaymentMethod;
 } 
 ```
 
-En uno de los ejemplos anteriores habíamos llegado a la siguiente construcción invirtiendo la condicional lo que resultó en una doble negación especialmente difícil de leer:
+En uno de los ejemplos anteriores habíamos llegado a la siguiente construcción invirtiendo la condicional lo que resultó en una doble negación que puede hacerse difícil de leer:
 
 ```php
 if (null !== $selectedPaymentMethod) {
-    return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
+    return $selectedPaymentMethod;
 } 
 ```
 
@@ -198,7 +252,7 @@ Nosotros lo que queremos es devolver el método de pago en caso de tener uno sel
 
 ```php
 if ($selectedPaymentMethod) {
-    return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
+    return $selectedPaymentMethod;
 } 
 ```
 
@@ -206,7 +260,7 @@ Una forma alternativa, si la condición es compleja o simplemente difícil de en
 
 ```php
 if ($this->userHasSelectedAPaymentMethod($selectedPaymentMethod)) {
-    return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
+    return $selectedPaymentMethod;
 } 
 
 function userHasSelectedAPaymentMethod($selectedPaymentMethod)
@@ -221,55 +275,54 @@ La idea es encapsular expresiones condicionales complejas en funciones o método
 
 Justo en el apartado anterior hemos visto un ejemplo de esto mismo, haciendo explícito el significado de una expresión condicional difícil de leer.
 
-Veamos otro caso en el mismo ejemplo, la extraña condicional:
+Veamos otro caso en el mismo ejemplo: la extraña condicional que selecciona el método de pago en función del país de destino y el número de pedido. Posiblemente, algún apaño para resolver un problema concreto en los primeros pasos de la empresa.
 
 ```php
-if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-    return PaymentTypes::PAYPAL;
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        return $selectedPaymentMethod;
+    }
+    
+    $logger = Logger::getInstance();
+    $logger->debug("Medio de pago desconocido");
+    
+    if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
+        return PaymentTypes::PAYPAL;
+    }
+    
+    return new DefaultPaymentMethod();
 }
-
-// Some more code to get a value for $paymentMethod
-
 ```
 
-Podría ser un poco más explicativa encapsulada en un método:
+Se podría encapsular la condición en un método que sea un poco más explicativo:
 
 ```php
-if (legacyOrdersWithDestinationFrance($order)) {
-    return PaymentTypes::PAYPAL;
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        return $selectedPaymentMethod;
+    }
+    
+    $logger = Logger::getInstance();
+    $logger->debug("Medio de pago desconocido");
+    
+    if ($this->isLegacyOrderWithDestinationFrance($order)) {
+        return PaymentTypes::PAYPAL;
+    }
+    
+    return new DefaultPaymentMethod();
 }
+```
 
-// Some more code to get a value for $paymentMethod
+Y el método encapsulado sería algo así:
 
-private function legacyOrdersWithDestinationFrance($order)
+```php
+private function isLegacyOrderWithDestinationFrance($order)
 {
     return $order->getDestinationCountry() == Country::FRANCE && $order->id() < 745;
 }
 ```
-
-Esto deja el bloque de esta manera:
-
-```php
-if ($selectedPaymentMethod) {
-    return $selectedPaymentMethod->getPaymentMethodType()->getPaymentMethodTypeId();
-} 
-
-$logger = Logger::getInstance();
-$logger->debug("Medio de pago desconocido");
-
-if (legacyOrdersWithDestinationFrance($order)) {
-    return PaymentTypes::PAYPAL;
-}
-
-// Some more code to get a value for $paymentMethod
-
-private function legacyOrdersWithDestinationFrance($order)
-{
-    return $order->getDestinationCountry() == Country::FRANCE && $order->id() < 745;
-}
-```
-
-Del singleton que tenemos por ahí no hablaremos en esta ocasión.
 
 ## Encapsula ramas en métodos o funciones
 
@@ -442,7 +495,49 @@ function selectElement(Criteria $criteria, Desirability $desirability)
 
 ## Solo un `if` por método
 
-Christian Clausen en [Five Lines of Code](https://www.manning.com/books/five-lines-of-code) propone un refactor para condicionales que puede ser muy interesante. Con frecuencia, una estructura condicional indica que una función está haciendo varias cosas distintas.
+Christian Clausen en [Five Lines of Code](https://www.manning.com/books/five-lines-of-code) propone un refactor para condicionales que puede ser muy interesante. Con frecuencia, una estructura condicional indica que una función está haciendo varias cosas distintas. Por tanto, lo que propone es que cada método haga solo una cosa, y que, por tanto, solo tenga un `if` que sería la primera línea. Si hay más de uno, separamos en métodos distintos.
+
+```php
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        return $selectedPaymentMethod;
+    }
+    
+    $logger = Logger::getInstance();
+    $logger->debug("Medio de pago desconocido");
+    
+    if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
+        return PaymentTypes::PAYPAL;
+    }
+    
+    return new DefaultPaymentMethod();
+}
+```
+
+Podría quedar más o menos así:
+
+```php
+function obtainPaymentMethod(Order $order): PaymentMethod {
+    $selectedPaymentMethod = $order->getSelectedPaymentMethod();
+    if ($selectedPaymentMethod !== null) {
+        return $selectedPaymentMethod;
+    }
+    
+    $logger = Logger::getInstance();
+    $logger->debug("Medio de pago desconocido");
+    
+    obtainDefaultPaymentMethod($order);
+}
+
+function obtainDefaultPaymentMethod(Order $order): PaymentMethod {
+     if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
+        return PaymentTypes::PAYPAL;
+     }
+    
+    return new DefaultPaymentMethod();
+}
+```
 
 
 ## Resumen del capítulo
