@@ -2,6 +2,12 @@
 
 > En el que decidimos cómo hacer que las decisiones que el código toma sean más comprensibles y fáciles de mantener en el futuro, porque al fin y a la postre todo en esta vida es decidir. El caso es saber cuando tomar las decisiones y comprender bien sus condiciones y sus consecuencias.
 
+### Notas de la segunda edición
+
+En este capítulo, como en otros, hemos mejorado los ejemplos y corregido algunas explicaciones para que sean más claras. Ahora la mayor parte de ejemplos tienen más sentido y ofrecen más contexto. Asímismo hemos incluido algunas propuestas nuevas.
+
+## La complejidad de decidir
+
 Es bastante obvio que si hay algo que añade complejidad a un software es la **toma de decisiones** y, por tanto, las estructuras condicionales con las que la expresamos.
 
 Estas estructuras pueden introducir dificultades de comprensión debido a varias razones:
