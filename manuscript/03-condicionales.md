@@ -42,7 +42,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
         $logger = Logger::getInstance();
         $logger->debug("Medio de pago desconocido");
         if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-            $paymentMethod = PaymentTypes::PAYPAL;
+            $paymentMethod = new PaypalPaymentMethod();
         } else {
             $paymentMethod = new DefaultPaymentMethod();
         }
@@ -65,7 +65,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
         $logger = Logger::getInstance();
         $logger->debug("Medio de pago desconocido");
         if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-            $paymentMethod = PaymentTypes::PAYPAL;
+            $paymentMethod = new PaypalPaymentMethod();
         } else {
             $paymentMethod = new DefaultPaymentMethod();
         }
@@ -90,7 +90,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
         $logger = Logger::getInstance();
         $logger->debug("Medio de pago desconocido");
         if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-            $paymentMethod = PaymentTypes::PAYPAL;
+            $paymentMethod = new PaypalPaymentMethod();
         } else {
             $paymentMethod = new DefaultPaymentMethod();
         }
@@ -111,7 +111,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
         $logger = Logger::getInstance();
         $logger->debug("Medio de pago desconocido");
         if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-            $paymentMethod = PaymentTypes::PAYPAL;
+            $paymentMethod = new PaypalPaymentMethod();
         } else {
             $paymentMethod = new DefaultPaymentMethod();
         }
@@ -133,7 +133,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
     $logger = Logger::getInstance();
     $logger->debug("Medio de pago desconocido");
     if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-        $paymentMethod = PaymentTypes::PAYPAL;
+        $paymentMethod = new PaypalPaymentMethod();
     } else {
         $paymentMethod = new DefaultPaymentMethod();
     }
@@ -155,7 +155,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
     $logger->debug("Medio de pago desconocido");
     
     if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-        return PaymentTypes::PAYPAL;
+        return new PaypalPaymentMethod();
     }
     
     return new DefaultPaymentMethod();
@@ -294,7 +294,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
     $logger->debug("Medio de pago desconocido");
     
     if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-        return PaymentTypes::PAYPAL;
+        return new PaypalPaymentMethod();
     }
     
     return new DefaultPaymentMethod();
@@ -314,7 +314,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
     $logger->debug("Medio de pago desconocido");
     
     if ($this->isLegacyOrderWithDestinationFrance($order)) {
-        return PaymentTypes::PAYPAL;
+        return new PaypalPaymentMethod();
     }
     
     return new DefaultPaymentMethod();
@@ -344,7 +344,7 @@ if ($productStatus == OrderStatuses::PROVIDER_PENDING ||
     if ($paymentMethod == PaymentTypes::BANK_TRANSFER) {
         return 'pendiente de transferencia';
     }
-    if ($paymentMethod == PaymentTypes::PAYPAL || $paymentMethod == PaymentTypes::CREDIT_CARD) {
+    if ($paymentMethod == new PaypalPaymentMethod() || $paymentMethod == PaymentTypes::CREDIT_CARD) {
         return 'pago a crédito';
     }
     if ($this->paymentMethods->hasSelectedDebitCard()) {
@@ -375,7 +375,7 @@ private function reportForProductInPendingStatus(paymentMethod)
     if ($paymentMethod == PaymentTypes::BANK_TRANSFER) {
         return 'pendiente de transferencia';
     }
-    if ($paymentMethod == PaymentTypes::PAYPAL || $paymentMethod == PaymentTypes::CREDIT_CARD) {
+    if ($paymentMethod == new PaypalPaymentMethod() || $paymentMethod == PaymentTypes::CREDIT_CARD) {
         return 'pago a crédito';
     }
     if ($this->paymentMethods->hasSelectedDebitCard()) {
@@ -403,7 +403,7 @@ private function reportForProductInPendingStatus(paymentMethod)
     if ($paymentMethod == PaymentTypes::BANK_TRANSFER) {
         return 'pendiente de transferencia';
     }
-    if ($paymentMethod == PaymentTypes::PAYPAL || $paymentMethod == PaymentTypes::CREDIT_CARD) {
+    if ($paymentMethod == new PaypalPaymentMethod() || $paymentMethod == PaymentTypes::CREDIT_CARD) {
         return 'pago a crédito';
     }
     if ($this->paymentMethods->hasSelectedDebitCard()) {
@@ -423,7 +423,7 @@ private function reportForProductInPendingStatus(paymentMethod)
     switch $paymentMethod {
         case PaymentTypes::BANK_TRANSFER:
             return 'pendiente de transferencia';
-        case PaymentTypes::PAYPAL:
+        case new PaypalPaymentMethod():
         case PaymentTypes::CREDIT_CARD:
             return 'pago a crédito';
     }
@@ -514,7 +514,7 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
     $logger->debug("Medio de pago desconocido");
     
     if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-        return PaymentTypes::PAYPAL;
+        return new PaypalPaymentMethod();
     }
     
     return new DefaultPaymentMethod();
@@ -533,19 +533,26 @@ function obtainPaymentMethod(Order $order): PaymentMethod {
     $logger = Logger::getInstance();
     $logger->debug("Medio de pago desconocido");
     
-    obtainDefaultPaymentMethod($order);
+    return obtainDefaultPaymentMethod($order);
 }
 
 function obtainDefaultPaymentMethod(Order $order): PaymentMethod {
      if ($order->getDestinationCountry() == Country::FRANCE && $order->id() < 745) {
-        return PaymentTypes::PAYPAL;
+        return new PaypalPaymentMethod();
      }
     
     return new DefaultPaymentMethod();
 }
 ```
 
-
 ## Resumen del capítulo
 
 Las expresiones y estructuras condicionales pueden hacer que seguir el flujo de un código sea especialmente difícil, particularmente cuando están anidadas o son muy complejas. Mediante técnicas de extracción podemos simplificarlas, aplanarlas y hacerlas más expresivas.
+
+Estas normas generales nos pueden ser útiles:
+
+* Poner la condición más corta primero.
+* Encapsular las condiciones en métodos o funciones para expresar la intención.
+* Encapsular las ramas en métodos o funciones que expresen la intención y, de paso, simplificar la estructura.
+* Evitar else cuando sea posible.
+* Expresar las condiciones de forma afirmativa.

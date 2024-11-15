@@ -8,7 +8,7 @@
 
 [Refactoring](https://refactoring.com), de Martin Fowler y Kent Beck. Se trata de un libro de referencia. Es difícil de leer de un tirón porque buena parte de su contenido es un catálogo de técnicas, pero el capítulo sobre _code smells_ es posiblemente el más iluminador de todos. Existen dos ediciones de este libro. En la primera, el refactoring era un concepto todavía en exploración y hay algunos apéndices en los que se trata esa cuestión. En la segunda edición, los ejemplos están en Javascript, lo que posiblemente los hace más accesibles.
 
-[99 bottles of OOP](https://sandimetz.com/99bottles), de Sandi Metz, no es estrictamente un libro sobre refactoring porque su objetivo es enseñar diseño orientado a objetos. Sin embargo, plantea el proceso comenzando por un ejemplo procedural y nos guía en el camino de convertirlo en un programa orientado a objetos, paso a paso y sin romper la funcionalidad. Creo que el término que mejor encaja para eso es _refactoring_. Además, tienes una edición del libro para PHP, Ruby y JS. Sandi Metz es una de mis autoras favoritas, así que recomiendo a ciegas cualquier cosa que publique, y sus charlas son fantásticas.
+[99 bottles of OOP](https://sandimetz.com/99bottles), de Sandi Metz, no es estrictamente un libro sobre refactoring porque su objetivo es enseñar diseño orientado a objetos. Sin embargo, plantea el proceso comenzando por un ejemplo procedural y nos guía en el camino de convertirlo en un programa orientado a objetos, paso a paso y sin romper la funcionalidad. Creo que el término que mejor encaja para eso es _refactoring_. Además, tienes una edición del libro para PHP, Ruby, JS y Python. Sandi Metz es una de mis autoras favoritas, así que recomiendo a ciegas cualquier cosa que publique, y sus charlas son fantásticas.
 
 ## Blogs y otros recursos online
 
@@ -18,7 +18,7 @@
 
 ## Vídeos
 
-[Workflows of refactoring](https://youtu.be/vqEg37e4Mkw?si=csOr06PlyZxC_0L-) es la charla de Martin Fowler en la que explica cuando se hace el refactoring.
+[Workflows of refactoring](https://youtu.be/vqEg37e4Mkw?si=csOr06PlyZxC_0L-) es la charla de Martin Fowler en la que explica cuando se hace el refactoring. De visión obligada. Además, es cortita y muy al punto.
 
 [The real secret to refactoring](https://youtu.be/fx-Ne_s71iY?si=mreVP0fvSoLchBuR) siempre merece la pena seguir el material de David Farley.
 
