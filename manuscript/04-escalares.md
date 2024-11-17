@@ -1,30 +1,275 @@
-# Capítulo 4. Deja atrás lo primitivo
+# Deja atrás lo primitivo
 
 > En el que se habla de que si estamos siguiendo un paradigma orientado a objetos, todo debería ser un objeto. Sí, todo.
 
-Todos los lenguajes de programación vienen de serie con un conjunto de tipos de datos básicos que denominamos primitivos (y en algún caso escalares, cuando no son objetos): boolean, int, float, string…, que utilizamos para representar cosas y operar con ellas. La parte mala es que son tipos genéricos y, a veces, necesitaríamos algo con más significado.
+### Notas de la segunda edición
 
-Lo ideal sería poder crear nuestros propios tipos, aptos para el dominio en el que estemos trabajando e incluyendo sus propias restricciones y propiedades. Además, podrían encapsular las operaciones que les sean necesarias. ¿Te suena el concepto? Estamos hablando de **value objects**.
+Este capítulo necesitaba una fuerte reescritura, dado que está muy orientado a Value Objects y no es la única posibilidad. Pero, en general, mover comportamiento y datos a objetos es una buena idea.
 
-Los _value objects_ son objetos que representan algún concepto importante en el dominio. Ya hemos hablado un montón de veces de ellos en el blog, por lo que simplemente haré un resumen. Puedes encontrar más detalles y ejemplos en este [artículo de Dani Tomé](https://danitome24.github.io/2018-11-19/usando-value-objects-con-php).
+## Tipos, Objetos y Value Objects
+
+Todos los lenguajes de programación vienen de serie con un conjunto de tipos de datos básicos que denominamos primitivos (en algún caso también se les llama escalares, cuando el lenguaje no los implementa nativamente como objetos): _boolean_, _integer_, _float_, _string_…, que utilizamos para representar cosas y operar con ellas. La parte mala es que se trata de tipos de datos muy genéricos y, a veces, necesitaríamos algo que aporte más significado y también más restricciones.
+
+### Problemas de los tipos primitivos
+
+**Validación.** Cuando queremos representar algún concepto en código inicialmente recurrimos a los tipos disponibles. Pensemos, por ejemplo, en un email, el cual usamos frecuentemente como nombre de usuario porque es único y fácil de recordar. Puesto que lo podemos representar con un tipo string, es habitual encontrarnos con código como este:
+
+```php
+$username = "user@example.com";
+``` 
+
+El problema es que un email no es un string cualquiera. Tiene una serie de restricciones que no se cumplen en un simple string. Por ejemplo, tiene que tener un formato concreto, con una longitud máxima, incluir el símbolo @, al menos un nombre de dominio, etc. Si queremos validar un email, tendremos que hacerlo manualmente. Esta sería una estrategia típica en PHP:
+
+```php
+function isValidEmail(string $email): bool
+{
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+```
+
+En cualquier caso, como `$username` es una variable, sería fácil que en cualquier momento cambie. En consecuencia nunca vamos a poder tener la seguridad de que `$username` es un email válido fuera del _scope_ en que se haya validado, por lo que tenemos que repetir esa validación siempre.
+
+**Conceptos compuestos**. Es muy frecuente que un concepto único se tenga que modelar con varios elementos. Así, por ejemplo, el nombre de una persona suele constar de nombre de pila y apellidos, para lo que podrían usarse dos strings:
+
+```php
+$firstName = "Pepa";
+$lastName = "Pérez García";
+```
+
+El problema obvio es que tenemos que tener esto en cuenta constantemente y mover estas variables juntas a todas partes:
+
+```php
+function createFullName(string $firstName, string $lastName): string
+{
+    return $firstName . ' ' . $lastName;
+}
+```
+
+Lo mismo ocurre aquí, que siempre tendremos que pasar ambos datos:
+
+```php
+class Customer
+{
+    private string $id;
+    private string $name;
+    private string $lastName;
+    
+    public function __construct(string $id, string $name, string $lastName) {
+        $this->id = $id;
+        $this->name = $name;
+        $this->lastName = $lastName;
+    }
+}
+```
+
+La necesidad de mantener juntos un conjunto de datos da lugar a un _code smell_ llamado _Data Clamp_. Este tipo de diseños son costosos de mantener y cambiar, ya que es fácil olvidar todos los elementos que tienen que mantenerse juntos. Un problema que te podrías encontrar es la diversidad de formatos de nombre que puedes encontrar en el mundo. Los nombres coreanos comienzan por el apellido. En USA es frecuente la inicial entre el nombre y el apellido. En España lo común es tener dos apellidos, mientras que en otros países solo se tiene uno. Una aplicación que pueda dar soporte a toda esta casuística debería tener un diseño que permita adaptarse a estos cambios.
+
+**Primitive Obsession**. En último término, usar tipos primitivos para representar conceptos complejos provoca el _code smell_ llamado _Primitive Obsession_. Aunque en muchos contextos es perfectamente válido usar tipos primitivos, cuando estamos modelando un dominio complejo es preferible usar objetos. Los objetos nos permitirán resolver los problemas anteriores de una forma segura y elegante.
+
+Así, por ejemplo, podemos hacer que un objeto se cree siempre con valores adecuados, impidiendo que se pueda instanciar si no se cumplen las condiciones requeridas. Veamos aquí el ejemplo con el email:
+
+```php
+class Email
+{
+    private string $email;
+
+    public function __construct(string $email)
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException('Invalid email address');
+        }
+        $this->email = $email;
+    }
+
+    public function __toString(): string
+    {
+        return $this->email;
+    }
+}
+```
+
+En consecuencia, si tenemos un objeto de tipo `Email` siempre tendremos la seguridad de que es válido, puesto que no se puede instanciar con valores que no pasen la validación. Además, si necesitamos el email como string, podemos hacer un _type casting_ a string y obtenerlo. Entre otras ventajas, conseguimos reducir la cantidad de código repetitivo que necesitamos para validar los emails. Y en caso de que la validación cambie, solo tendremos que aplicar el cambio en un único lugar, garantizando la coherencia entre partes distintas de la aplicación.
+
+El caso del nombre es similar. Podemos crear un objeto `SimpleName` que encapsule el nombre y el apellido:
+
+```php
+class SimpleName
+{
+    private string $name;
+    private string $lastName;
+
+    public function __construct(string $name, string $lastName)
+    {
+        $this->name = $name;
+        $this->lastName = $lastName;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name . ' ' . $this->lastName;
+    }
+}
+```
+
+¿Y qué ocurre si necesitamos representar el nombre coreano? Efectivamente, podemos crear un objeto `KoreanName` que se adapte a las necesidades de este caso:
+
+```php
+class KoreanName
+{
+    private string $lastName;
+    private string $name;
+
+    public function __construct(string $lastName, string $name)
+    {
+        $this->lastName = $lastName;
+        $this->name = $name;
+    }
+
+    public function __toString(): string
+    {
+        return $this->lastName . ' ' . $this->name;
+    }
+}
+```
+
+Para que los objetos sean intercambiables entre sí, deberían declarar una interfaz común. Por ejemplo, `PersonName` e implementar los métodos necesarios para que puedan ser usados de forma intercambiable. En este caso, es `__toString()`: 
+
+```php 
+interface PersonName
+{
+    public function __toString(): string;
+}
+```
+Modificamos `SimpleName` y `KoreanName` para que implementen la interfaz:
+
+```php
+class SimpleName implements PersonName
+{
+    private string $name;
+    private string $lastName;
+
+    public function __construct(string $name, string $lastName)
+    {
+        $this->name = $name;
+        $this->lastName = $lastName;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name . ' ' . $this->lastName;
+    }
+}
+```
+```php
+class KoreanName implements PersonName
+{
+    private string $lastName;
+    private string $name;
+
+    public function __construct(string $lastName, string $name)
+    {
+        $this->lastName = $lastName;
+        $this->name = $name;
+    }
+
+    public function __toString(): string
+    {
+        return $this->lastName . ' ' . $this->name;
+    }
+}
+```
+
+Y de este modo, podemos introducir cualquier variante de nombre que necesitemos en nuestra aplicación.
+
+## Tipos
+
+Cuando el sistema de tipos del lenguaje no nos proporciona suficientes garantías, o bien cuando consideramos ciertas restricciones que debemos aplicar frecuentemente, podemos introducir objetos que, sin llegar a ser Value Objects porque no representan conceptos del dominio, nos permiten encapsular ciertas reglas genéricas.
+
+Por ejemplo, imaginemos que queremos representar un número entero que no puede ser negativo. Podríamos hacer algo así:
+
+```php
+class NonNegative
+{
+    private int $value;
+
+    public function __construct(int $value)
+    {
+        if ($value < 0) {
+            throw new InvalidArgumentException('Value must be non-negative');
+        }
+        $this->value = $value;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->value;
+    }
+}
+```
+
+De este modo, si necesitamos un número no negativo, simplemente creamos un objeto `NonNegative` y ya tenemos la garantía de que el valor es correcto. Algo similar si lo que necesitamos es strings no vacíos, que sería un requisito habitual para muchos campos de texto:
+
+```php
+class NonEmptyString
+{
+    private string $value;
+
+    public function __construct(string $value)
+    {
+        if ('' === $value) {
+            throw new InvalidArgumentException('Value must be non-empty');
+        }
+        $this->value = $value;
+    }
+
+    public function __toString(): string
+    {
+        return $this->value;
+    }
+}
+```
+
+Ahora, podríamos definir un objeto de dominio que represente un `Customer` de la siguiente manera, de tal modo que garantizamos que los datos que contiene son válidos:
+
+```php
+class Customer
+{
+    private string $id;
+    private NonEmptyString $personName;
+    private NonNegative $age;
+
+    public function __construct(string $id, string $personName, int $age)
+    {
+        $this->id = $id;
+        $this->personName = new NonEmptyString($personName);
+        $this->age = new NonNegative($age);
+    }
+}
+```
+
+Una observación importante es que estos objetos no pueden usarse como clases base para derivar Value Objects. No tienen un significado en el dominio, sino que son simplemente objetos que encapsulan ciertas reglas. Los usaremos siempre por composición, como si fuesen tipos nativos.
+
+### Value Objects
+
+Los _value objects_ son objetos que representan algún concepto importante en el dominio. Puedes encontrar más detalles y ejemplos en este [artículo de Dani Tomé](https://danitome24.github.io/2018-11-19/usando-value-objects-con-php).
 
 En resumen, los _value objects_:
 
 * Representan conceptos importantes o interesantes del dominio, entendido como el dominio de conocimiento que toca el código que estamos implementando o estudiando.
 * Siempre son creados consistentes, de modo que si obtienes una instancia puedes tener la seguridad de que es válida. De otro modo, no se crean y se lanza una excepción.
 * Los objetos nos interesan por su valor, no por su identidad, por lo que tienen que tener alguna forma de chequear esa igualdad.
-* Son inmutables, o sea, su valor no puede cambiar durante su ciclo de vida. En caso de que tengan métodos *mutators*, estos devolverán una nueva instancia de la clase con el valor modificado.
+* Son inmutables: su valor no puede cambiar durante su ciclo de vida. En caso de que tengan métodos *mutators*, estos devolverán una nueva instancia de la clase con el valor modificado.
 * Encapsulan comportamientos. Los buenos _value objects_ atraen y encapsulan comportamientos que pueden ser utilizados por el resto del código.
 
 Los _value objects_ pueden ser genéricos y reutilizables, como `Money`, o muy específicos de un dominio.
 
-Una aclaración que me gustaría hacer es _value object_ es uno de los bloques de construcción en Domain Driven Design, pero el patrón de encapsular valores primitivos en objetos lo podemos (y debemos) aplicar a                  
+Una aclaración que me gustaría hacer es _value object_ es uno de los bloques de construcción en Domain Driven Design, pero el patrón de encapsular valores primitivos en objetos lo podemos (y debemos) aplicar en cualquier tipo de diseño orientado a objetos.          
 
 ## Refactorizar a _value objects_
 
 Refactorizar a _value objects_ puede ser una tarea de bastante calado, ya que implica crear nuevas clases y utilizarlas en diversos puntos del código. Ahora bien, este proceso puede hacerse de forma bastante gradual. Ten en cuenta que:
 
-* Los _value objects_ no tienen dependencias, para crearlos solo necesitas tipos escalares o bien otros _value objects_.
+* Los _value objects_ no tienen dependencias, para crearlos solo necesitas primitivos o bien otros _value objects_.
 * Los _value objects_ se pueden instanciar allí donde los necesites, son *newables*.
 * Normalmente, tendrás métodos para convertir los _value objects_ a escalares, de modo que puedas utilizar sus valores con código que no puedes modificar.
 

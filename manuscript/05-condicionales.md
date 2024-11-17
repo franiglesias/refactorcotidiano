@@ -1,4 +1,4 @@
-# Capítulo 3. Acondiciona las condicionales
+# Acondiciona las condicionales
 
 > En el que decidimos cómo hacer que las decisiones que el código toma sean más comprensibles y fáciles de mantener en el futuro, porque al fin y a la postre todo en esta vida es decidir. El caso es saber cuando tomar las decisiones y comprender bien sus condiciones y sus consecuencias.
 

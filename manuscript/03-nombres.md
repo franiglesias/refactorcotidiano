@@ -1,4 +1,4 @@
-# Capítulo 2. El nombre de la cosa
+# El nombre de la cosa
 
 > En el que Adso y Guillermo... ejem, en el que discutimos sobre la necesidad de poner los nombres adecuados a las cosas del código, a fin de que se entienda qué demonios pasaba en aquel momento por nuestra cabeza, o la de la autora del código que tenemos que intervenir. 
 
@@ -650,3 +650,7 @@ Pero el resumen es que el hecho de no haber ido reflejando la evolución del con
 * Las pérdidas por no ingresos debidos a la dificultad del software de adaptarse a las necesidades cambiantes del negocio.
 
 Por esto, preocúpate por poner buenos nombres y mantenerlos al día. Va en ello tu salario.
+
+## Resumen del capítulo
+
+Los nombres de los diversos objetos y mensajes que viven en un programa deberían ser precisos y reflejar el lenguaje del dominio que se trate. Un buen nombre es aquel que nos permite entender de un vistazo qué hace un objeto o qué representa un mensaje. Un mal nombre, por el contrario, nos obliga a pararnos a pensar y a interpretar lo que estamos leyendo.

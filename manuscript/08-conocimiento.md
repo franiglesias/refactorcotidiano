@@ -1,4 +1,4 @@
-# Capítulo 8. Dónde poner el conocimiento
+# Dónde poner el conocimiento
 
 > En el que se continúan ideas expuestas en el Capítulo 6 acerca de cómo reasignar responsabilidades en el código.
 

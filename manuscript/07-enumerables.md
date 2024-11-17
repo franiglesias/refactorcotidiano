@@ -1,4 +1,4 @@
-# Capítulo 5. Refactoriza a Enumerables
+# Refactoriza a Enumerables
 
 > Que trata sobre cómo gestionar aquellos tipos de datos que tienen valores limitados, algo que solemos encontrar en prácticamente todos los dominios. Pero también algo que queremos mejorar respecto a la edición anterior.
 

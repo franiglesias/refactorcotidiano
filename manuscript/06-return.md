@@ -1,4 +1,4 @@
-# Capítulo 6. Refactoriza de _single return_ a _return early_
+# De _single return_ a _return early_
 
 > En el que se trata un problema que viene del principio de los tiempos de la programación, cuando teníamos cosas como GOTO, números de línea y direcciones de memoria arbitrarias a las que saltar. Pero aún nos quedan algunos hábitos.
 

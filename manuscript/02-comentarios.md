@@ -1,4 +1,4 @@
-# Capítulo 1. Cuando los comentarios confunden
+# Cuando los comentarios confunden
 
 > En el que se trata de como gestionar los comentarios de un código, con especial atención a las situaciones en que el comentario más que ayudar nos confunde, así como criterios para decidir qué comentarios mantener y cuáles no.
 
