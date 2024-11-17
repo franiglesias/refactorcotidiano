@@ -1,18 +1,20 @@
 # Aplica Tell, Don't Ask
 
-> En el que tratamos sobre la redistribución de responsabilidades. Porque en un sistema orientado a objetos la pregunta no es: ¿cómo hay que hacer esto?, sino: ¿quién debería estar haciendo esto? Y, por tanto, lo que buscamos es la forma de mover las responsabilidades y comportamientos a los objetos a los que pertenecen naturalmente. 
+> En el que buscamos empujar el comportamiento dentro de nuestros objetos para que sepan hacer cosas por sí mismos, en lugar de preguntarles por lo que saben. 
 
-Hasta ahora, hemos trabajado refactors muy orientados a mejorar la expresividad del código y a la organización de unidades de código. En este capítulo vamos a trabajar en cómo mejorar las relaciones entre objetos.
+Hasta ahora, hemos trabajado refactors muy orientados a mejorar la expresividad del código y a la organización de unidades de código. Pero en estos capítulos nos enfocaremos en los principios de diseño orientado a objetos.
 
-Los principios de diseño nos proporcionan criterios útiles tanto para guiarnos en el desarrollo como para evaluar código existente en el que tenemos que intervenir. Vamos a centrarnos en dos principios que son bastante fáciles de aplicar y que mejorarán la inteligibilidad y la posibilidad de testear nuestro código. Se trata de *Tell, Don't Ask* y la *Ley de Demeter*.
+Los principios de diseño nos proporcionan criterios útiles tanto para guiarnos en el desarrollo como para evaluar código existente en el que tenemos que intervenir.
 
-Primero haremos un repaso y luego los veremos en acción.
+### Notas de la segunda edición
+
+En esta revisión, hemos dividido este capítulo en dos a fin de tratar de forma más detallada los principios presentados: _Tell, Don't Ask_ y la _Ley de Demeter_. Esto nos permitirá explorarlos con más detalle y mejores ejemplos.
 
 ## Tell, don't ask
 
-La traducción de este enunciado a español sería algo así como "Ordena, no preguntes". La idea de fondo de este principio es que cuando queremos modificar un objeto basándose su propio estado, no es buena idea preguntarle por su estado (*ask*), hacer el cálculo y cambiar su estado si fuera preciso. En su lugar, lo propio sería encapsular ese proceso en un método del propio objeto y decirle (*tell*) que lo realice él mismo.
+La traducción de este enunciado a español sería algo así como "Pide, no preguntes". La idea de fondo de este principio es que cuando queremos modificar un objeto basándose su propio estado, no es buena idea preguntarle por su estado (*ask*), hacer el cálculo y cambiar su estado si fuera preciso. En su lugar, lo propio sería encapsular ese proceso en un método del propio objeto y decirle (*tell*) que lo realice él mismo.
 
-Dicho en otras palabras: cada objeto debe ser responsable de su estado.
+Dicho en otras palabras: cada objeto debe ser responsable de su estado representado por sus propiedades internas, manteniéndolo oculto a los demás objetos, que solo conocerán su interfaz pública.
 
 Veamos un ejemplo bastante absurdo, pero que lo deja claro.
 
@@ -36,12 +38,12 @@ $area = $square->area();
 
 Mejor, ¿no? Veamos por qué.
 
-En el dominio de las figuras geométricas planas, el área o superficie es una propiedad que tienen todas ellas y que, a su vez, depende de otras que son su base y su altura, que en el caso del cuadrado coinciden. La función para determinar el área ocupada por una figura plana depende de cada figura específica.
+En el dominio de las figuras geométricas planas, el área o superficie es una propiedad que tienen todas ellas y que, a su vez, depende de su base y su altura, que en el caso del cuadrado coinciden. La función para determinar el área ocupada por una figura plana es diferente para cada tipo de figura.
 
 Posiblemente, estés de acuerdo en que al modelar este comportamiento lo pondríamos en la clase de cada figura desde el primer momento, lo que seguramente nos llevaría a una interfaz.
 
 ```php
-interface TwoDimensionalShapeInterface
+interface TwoDimensionalShape
 {
     public function area(): float;
 }

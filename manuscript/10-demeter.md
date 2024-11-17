@@ -1,12 +1,18 @@
 # Aplica la Ley de Demeter
 
-> En el que tratamos sobre la redistribución de responsabilidades. Porque en un sistema orientado a objetos la pregunta no es: ¿cómo hay que hacer esto?, sino: ¿quién debería estar haciendo esto? Y, por tanto, lo que buscamos es la forma de mover las responsabilidades y comportamientos a los objetos a los que pertenecen naturalmente. 
+> En el que seguimos hablando acerca de la redistribución de responsabilidades. Un sistema orientado a objetos se basa en los mensajes que se envían los objetos entre sí, por lo que resulta importante aprender qué objetos deberían hablar entre sí y cuáles no. 
 
 ## Ley de Demeter
 
-La **Ley de Demeter**[^fn-demeter] también se conoce como **Principio de mínimo conocimiento** y, más o menos, dice que un objeto no debería conocer la organización interna de los otros objetos con los que colabora.
+La **Ley de Demeter**[^fn-demeter], que también se conoce como **Principio de mínimo conocimiento**, dice que un objeto no debería conocer la organización interna de los otros objetos con los que colabora. Lo único que debería saber es cómo comunicarse con ellos. De este modo, al conocer lo mínimo posible, se acopla mínimamente a ellos.
 
 [^fn-demeter]: El nombre viene del proyecto donde se usó por primera vez.
+
+### Notas de la segunda edición
+
+Como mencionamos en el capítulo anterior, hemos separado los capítulos de _Tell, Don't Ask_ y _Ley de Demeter_ en dos capítulos distintos. Aunque ambos tratan sobre la redistribución de responsabilidades, el anterior se centra en la encapsulación de la lógica de negocio, mientras que este se centra en la comunicación entre objetos.
+
+### Cumpliendo la Ley
 
 Siguiendo la **Ley de Demeter**, como veremos, un método de una clase solo puede hablar con los objetos a los que conoce. Estos son:
 
