@@ -14,45 +14,331 @@ En esta revisión, hemos dividido este capítulo en dos a fin de tratar de forma
 
 La traducción de este enunciado a español sería algo así como "Pide, no preguntes". La idea de fondo de este principio es que cuando queremos modificar un objeto basándose su propio estado, no es buena idea preguntarle por su estado (*ask*), hacer el cálculo y cambiar su estado si fuera preciso. En su lugar, lo propio sería encapsular ese proceso en un método del propio objeto y decirle (*tell*) que lo realice él mismo.
 
-Dicho en otras palabras: cada objeto debe ser responsable de su estado representado por sus propiedades internas, manteniéndolo oculto a los demás objetos, que solo conocerán su interfaz pública.
+Dicho en otras palabras: cada objeto debe ser responsable de su estado representado por sus propiedades internas, manteniéndolo oculto a los demás objetos, que solo conocerán su interfaz pública. En consecuencia, las relaciones entre los objetos deben producirse siempre mediante llamadas a métodos, evitando el acceso directo a las propiedades internas de otros objetos.
 
-Veamos un ejemplo bastante absurdo, pero que lo deja claro.
-
-Supongamos que tenemos una clase `Square` que representa un cuadrado y queremos poder calcular su área.
+Supongamos que tenemos una clase `Square` que representa un cuadrado y queremos poder calcular su área:
 
 ```php
-$square = new Square(20);
 
-$side = $square->side();
+class Square
+{
+    private $side;
 
-$area = $side**2;
+    public function __construct($side)
+    {
+        $this->side = $side;
+    }
+
+    public function side()
+    {
+        return $this->side;
+    }
+}
 ```
 
-Si aplicamos el principio *Tell, Don't Ask*, el cálculo del área estaría en la clase `Square`:
+Aquí tenemos una posible implementación de un `AreaCalculator`.
 
-```php
-$square = new Square(20);
-
-$area = $square->area();
 ```
 
-Mejor, ¿no? Veamos por qué.
+class AreaCalculator
+{
+    public function calculate($square)
+    {
+        $side = $square->side();
+        return $side**2;
+    }
+}
+```
 
-En el dominio de las figuras geométricas planas, el área o superficie es una propiedad que tienen todas ellas y que, a su vez, depende de su base y su altura, que en el caso del cuadrado coinciden. La función para determinar el área ocupada por una figura plana es diferente para cada tipo de figura.
-
-Posiblemente, estés de acuerdo en que al modelar este comportamiento lo pondríamos en la clase de cada figura desde el primer momento, lo que seguramente nos llevaría a una interfaz.
+Ahora, imaginemos que queremos calcular el área de otras figuras geométricas, como el triángulo o el círculo:
 
 ```php
-interface TwoDimensionalShape
+class Triangle
+{
+    private $base;
+    private $height;
+
+    public function __construct($base, $height)
+    {
+        $this->base = $base;
+        $this->height = $height;
+    }
+
+    public function base()
+    {
+        return $this->base;
+    }
+
+    public function height()
+    {
+        return $this->height;
+    }
+}
+```
+
+¿Cómo le explicamos a `AreaCalculator` que ahora tiene que calcular el área de un triángulo? Podríamos fijarnos en su tipo, para decidir qué algoritmo se debe aplicar:
+
+```php
+class AreaCalculator
+{
+    public function calculate($shape)
+    {
+        if ($shape instanceof Square) {
+            $side = $shape->side();
+            return $side**2;
+        }
+
+        if ($shape instanceof Triangle) {
+            $base = $shape->base();
+            $height = $shape->height();
+            return ($base * $height) / 2;
+        }
+    }
+}
+```
+
+Como se puede ver en el código, `AreaCalculator` tiene que saber un montón de cosas acerca de los objetos de lo que tiene que calcular su área:
+
+* Necesita saber qué tipo de objeto es (`Square` o `Triangle`).
+* Necesita saber qué propiedades tiene cada objeto, según el tipo de objeto (`side` o `base` y `height`).
+* Necesita saber cómo calcular el área de cada objeto.
+
+Esto viola todos los principios relacionados con la encapsulación. `AreaCalculator` tiene que conocer demasiados detalles de los objetos que tiene que calcular. Además, si añadimos una nueva figura geométrica, tendremos que modificar `AreaCalculator` para añadir una nueva decisión:
+
+```php
+class Circle
+{
+    private $radius;
+
+    public function __construct($radius)
+    {
+        $this->radius = $radius;
+    }
+
+    public function radius()
+    {
+        return $this->radius;
+    }
+}
+```
+
+Y una nueva modificación en `AreaCalculator`:
+
+```php
+class AreaCalculator
+{
+    public function calculate($shape)
+    {
+        if ($shape instanceof Square) {
+            $side = $shape->side();
+            return $side**2;
+        }
+
+        if ($shape instanceof Triangle) {
+            $base = $shape->base();
+            $height = $shape->height();
+            return ($base * $height) / 2;
+        }
+
+        if ($shape instanceof Circle) {
+            $radius = $shape->radius();
+            return pi() * $radius**2;
+        }
+    }
+}
+```
+
+En este tipo de situaciones es donde el principio *Tell, Don't Ask* nos puede ayudar. En lugar de preguntar a los objetos por su estado y calcular el área en otro lugar, podemos pedirles que lo hagan ellos mismos. El área es una propiedad de las figuras geométricas y cada una de ellas tiene acceso a los datos necesarios para calcularla. Por tanto, el cálculo del área debería estar en la clase de cada figura.
+
+```php
+class Square
+{
+    private $side;
+
+    public function __construct($side)
+    {
+        $this->side = $side;
+    }
+
+    public function side()
+    {
+        return $this->side;
+    }
+
+    public function area()
+    {
+        return $this->side**2;
+    }
+}
+```
+```php
+class Triangle
+{
+    private $base;
+    private $height;
+
+    public function __construct($base, $height)
+    {
+        $this->base = $base;
+        $this->height = $height;
+    }
+
+    public function base()
+    {
+        return $this->base;
+    }
+
+    public function height()
+    {
+        return $this->height;
+    }
+
+    public function area()
+    {
+        return ($this->base * $this->height) / 2;
+    }
+}
+```
+```php
+class Circle
+{
+    private $radius;
+
+    public function __construct($radius)
+    {
+        $this->radius = $radius;
+    }
+
+    public function radius()
+    {
+        return $this->radius;
+    }
+
+    public function area()
+    {
+        return pi() * $this->radius**2;
+    }
+}
+```
+
+Puesto que ahora cada figura sabe cómo calcular su área, `AreaCalculator` se simplifica. Vamos a hacerlo por pasos. En el primero nos limitamos a reemplazar el cálculo del área por el método `area` de cada figura. Así quedan tras la introducción del principio *Tell, Don't Ask* a nuestro problema.
+
+```php
+class AreaCalculator
+{
+    public function calculate($shape)
+    {
+        if ($shape instanceof Square) {
+            return $shape->area();
+        }
+        
+        if ($shape instanceof Triangle) {
+            return $shape->area();
+        }
+        
+        if ($shape instanceof Circle) {
+            return $shape->area();
+        }
+    }
+}
+```
+
+## Polimorfismo
+
+Bien, esto tiene otra pinta. Sin embargo, seguimos preguntándole cosas a las figuras geométricas. En este caso, preguntamos si son instancias de `Square`, `Triangle` o `Circle`, y es obvio que la sucesión de `if` es redundante porque en último término les pedimos que hagan lo mismo. Dado que cada figura expone un método `area`, podemos asumir que todas ellas son capaces de responder al mismo mensaje. Por tanto, simplifiquemos `AreaCalculator`:
+
+```php
+class AreaCalculator
+{
+    public function calculate($shape)
+    {
+        return $shape->area();
+    }
+}
+```
+Y aquí podemos ver el principio *Tell, Don't Ask* en acción. En lugar de preguntar a las figuras geométricas por su estado y calcular el área en otro lugar, simplemente les pedimos que lo hagan ellas mismas independientemente de su tipo.
+
+Esta solución es posible gracias al _polimorfismo_. El polimorfismo es una característica de los lenguajes orientados a objetos gracias a la cual podemos enviar el mismo mensaje a diferentes objetos, obteniendo respuestas basándonos en su tipo específico. Esto nos permite evitar tener que preguntar por el tipo de objeto cada vez y actuar en consecuencia.
+
+El tipo muchas veces viene dado por la clase de los objetos, que es lo que ocurre en nuestro ejemplo, pero en otros casos es una propiedad de una única clase. El problema, en nuestro caso, es que al principio teníamos objetos anémicos a los que no podíamos enviar ningún mensaje. Una vez que hemos aplicado _Tell, don't ask_ y hemos movido el comportamiento a los objetos, nos hemos dado cuenta de que podríamos beneficiarnos del polimorfismo.
+
+Por otro lado, nos hemos aprovechado de la posibilidad de PHP, y de otros lenguajes, de hacer "duck typing", gracias a lo cual el método `calculate` no requiere tipado. En lugar de preguntar por el tipo de objeto, simplemente le pedimos que haga algo. Si el objeto sabe hacerlo, lo hará. Si no, lanzará una excepción. En algunos lenguajes de programación tendríamos que haber declarado el tipo de `$shape` en el método `calculate` para saber que se puede llamar a `area`.
+
+Examinando las regularidades de las clases `Square`, `Triangle` y `Circle`, podemos ver que todas ellas tienen un método `area` que devuelve un valor numérico. Por tanto, podemos definir una interfaz común para todas ellas:
+
+```php
+interface Shape
 {
     public function area(): float;
 }
 ```
 
-La primera razón es que toda la información necesaria para calcular el área está en la clase, por lo que tiene todo el sentido del mundo que el conocimiento preciso para calcularla también esté allí. Se aplica el **principio de Cohesión** y el **principio de Encapsulamiento**, manteniendo juntos los datos y las funciones que procesan esos datos.
+Gracias a esto, `AreaCalculator` puede confiar en que cualquier objeto que implemente la interfaz `Shape` tendrá un método `area` que devolverá un valor numérico. En caso de que el objeto recibido no implemente la interfaz `Shape`, PHP lanzará una excepción antes incluso de intentar ejecutar el método `calculate`.
 
-Una segunda razón es más pragmática: si el conocimiento para calcular el área está en otro lugar, como un servicio, cada vez que necesitemos incorporar una nueva clase al sistema, tendremos que modificar el servicio para añadirle ese conocimiento, rompiendo el **principio Abierto/Cerrado**. 
+```php
+class AreaCalculator
+{
+    public function calculate(Shape $shape): float
+    {
+        return $shape->area();
+    }
+}
+```
 
-En tercer lugar, el testing se simplifica. Es fácil hacer tests de las clases que representan las figuras. Por otro lado, el testing de las otras clases que las utilizan también se simplifica. Normalmente, esas clases usarán el cálculo del área como una utilidad para llevar a cabo sus propias responsabilidades que es lo que queremos saber si hacen correctamente.
+Una ventaja extra, como se puede ver, es que ahora `AreaCalculator` no tiene que preocuparse por los detalles de cada figura geométrica. Solo necesita saber que el objeto que recibe implementa la interfaz `Shape` y que, por tanto, tiene un método `area` que puede llamar. Eso hace innecesario acceder directamente a las propiedades internas de cada figura.
 
-Siguiendo el principio ***Tell, Don't Ask*** movemos responsabilidades a los objetos a los que pertenecen. 
+```php
+class Square implements Shape
+{
+    private $side;
+
+    public function __construct($side)
+    {
+        $this->side = $side;
+    }
+
+    public function area(): float
+    {
+        return $this->side**2;
+    }
+}
+```
+
+```php
+class Triangle implements Shape
+{
+    private $base;
+    private $height;
+
+    public function __construct($base, $height)
+    {
+        $this->base = $base;
+        $this->height = $height;
+    }
+
+    public function area(): float
+    {
+        return ($this->base * $this->height) / 2;
+    }
+}
+```
+
+```php
+class Circle implements Shape
+{
+    private $radius;
+
+    public function __construct($radius)
+    {
+        $this->radius = $radius;
+    }
+
+    public function area(): float
+    {
+        return pi() * $this->radius**2;
+    }
+}
+```
+
+## Resumen del capítulo
+
