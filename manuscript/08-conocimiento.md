@@ -4,13 +4,13 @@
 
 ### Notas de la segunda edición
 
-En este capítulo introduciremos los principios GRASP
+En este capítulo introduciremos los principios GRASP, los cuales habíamos mencionado en la edición anterior, por lo que cambiamos casi por completo los ejemplos.
 
-En anteriores capítulos hemos propuesto refactorizar código a Value Objects o aplicar principios como la *ley de Demeter* o *Tell, don't ask* para mover código a un lugar más adecuado. En este capítulo vamos a analizarlo desde un punto de vista más general.
+## Refactorizar para trasladar conocimiento
 
-Solemos decir que refactorizar tiene que ver con el **conocimiento** y el **significado**. Fundamentalmente, porque lo que hacemos es aportar significado al código con el objetivo de que este represente de una manera fiel y dinámica el conocimiento cambiante que tenemos del negocio del que nos ocupamos.
+Solemos decir que refactorizar tiene que ver con el **conocimiento** y el **significado**. Fundamentalmente, porque lo que hacemos es aportar significado al código con el objetivo de que este represente de una manera fiel y dinámica el conocimiento cambiante que tenemos del negocio del que nos ocupamos. Y, por otro lado, porque lo que perseguimos con un refactoring continuado es representar nuestro entendimiento actual del negocio en el código con la mayor precisión posible.
 
-En el código de una aplicación tenemos objetos que representan alguna de estas cosas del negocio:
+En el código de una aplicación tenemos objetos que representan alguna de estas cosas:
 
 * **Conceptos**, ya sea en forma de entidades o de value objects. Las entidades representan conceptos que nos interesan por su identidad y tienen un ciclo de vida. Los value objects representan conceptos que nos interesan por su valor.
 * **Relaciones entre esos conceptos**, que suelen representarse en forma de agregados y que están definidas por las reglas de negocio.
@@ -19,6 +19,10 @@ En el código de una aplicación tenemos objetos que representan alguna de estas
 Uno de los problemas que tenemos que resolver al escribir código y al refactorizarlo es dónde poner el conocimiento y, más exactamente, las reglas de negocio.
 
 Si hay algo que caracteriza al *legacy* es que el conocimiento sobre las reglas de negocio suele estar disperso a lo largo y ancho del código, en los lugares más imprevisibles y representado de las formas más dispares. El efecto de refactorizar este código es, esperamos, llegar a trasladar ese conocimiento al lugar donde mejor nos puede servir.
+
+Pero incluso en código nuevo, el conocimiento puede estar disperso. Puede ser debido a que no conocemos bien nuestro negocio todavía, o porque no somos capaces de expresarlo mejor en un momento dado. Además, el código siempre va a tener un cierto desfase con lo que sabemos del negocio, porque el negocio cambia y nuestro conocimiento de él también.
+
+Para saber donde colocar el conocimiento en el código podemos recurrir a varios principio y patrones.
 
 ## Principios básicos
 
@@ -34,26 +38,23 @@ En esencia, la idea que nos interesa recalcar es que cada regla de negocio estar
 
 Los principios que hemos enunciado se centran en el carácter único de la representación, pero no nos dicen dónde debe residir la misma. Lo cierto es que es un tema complejo, pues es algo que puede admitir varias interpretaciones y puede depender del estado de nuestro conocimiento actual del negocio.
 
-## Buscando dónde guardar el conocimiento
+## Buscando dónde guardar el conocimiento: patrones GRASP
 
-### En los objetos a los que pertenece
+Los patrones GRASP son un conjunto de patrones de diseño que nos ayudan a asignar responsabilidades a los objetos de un sistema. Fueron introducidos por Craig Larman, que identifica una serie de preguntas que nos podemos hacer para saber dónde colocar el conocimiento en un sistema orientado a objetos.
 
-El patrón GRASP _Information Expert_ nos viene perfecto aquí. Este patrón nos dice que un objeto debería ser la fuente de verdad de todo lo que tiene que ver consigo mismo. Expresándolo en otras palabras, quiere decir que un objeto debe ser capaz de realizar todos los comportamientos que le sean propios, dentro del contexto de nuestra aplicación. Para ello no debería necesitar exponer sus propiedades internas o estado.
+### Regla general: en los objetos que tienen la información necesaria
 
-Por tanto, cuando preguntamos a un objeto sobre su estado y realizamos acciones basadas en la respuesta, lo suyo debería ser encapsular esas acciones en forma de comportamientos del objeto. Para ello, podemos seguir el principio *Tell, don't ask*. Esto es, en lugar de obtener información de un objeto para operar con ella y tomar una decisión sobre ese objeto, le pedimos que lo haga él mismo y nos entregue un resultado si es adecuado para el contexto.
+Este patrón se llama _Information Expert_ y es el más general de todos. Una responsabilidad se asignará al objeto que tenga la información necesaria para ejercerla.
 
-En ese sentido, los *value objects* y *entidades*, de los que hemos hablado tantas veces, son lugares ideales para encapsular conocimiento. Veamos un ejemplo:
+En el contexto de refactoring, lo que nos dice este principio es que cuando estamos usando la información contenida en un objeto, ese uso o comportamiento tendría que estar en ese mismo objeto. Expresándolo en otras palabras, quiere decir que un objeto debe ser capaz de realizar todos los comportamientos que le sean propios, dentro del contexto de nuestra aplicación. Para ello no debería necesitar exponer sus propiedades internas o estado.
 
-Supongamos que en nuestro negocio estamos interesados en ofrecer ciertos productos o ventajas a usuarios cuya cuenta de correo pertenezca a ciertos dominios, por ejemplo perteneciente a su cuenta corporativa. El correo electrónico es, pues, un concepto importante del negocio y lo representamos mediante un _value object_:
+Por tanto, cuando preguntamos a un objeto sobre su estado y realizamos acciones basadas en la respuesta, lo suyo debería ser encapsular esas acciones en forma de comportamientos del objeto. Para ello, podemos seguir el principio *Tell, don't ask*. Esto es, en lugar de obtener información de un objeto para operar con ella y tomar una decisión sobre ese objeto, le pedimos que lo haga él mismo y nos entregue un resultado si es adecuado para el contexto. Esto lo trataremos con más detalle en el siguiente capítulo.
+
+Los *value objects* y *entidades* son lugares ideales para encapsular conocimiento de dominio.
+
+Supongamos que en nuestro negocio estamos interesados en ofrecer ciertos productos o ventajas a usuarios cuya cuenta de correo pertenezca a ciertos dominios. Un ejemplo de esto son los programas de beneficios de algunas empresas. El correo electrónico es, pues, un concepto importante del negocio y lo representamos mediante un _value object_:
 
 ```php
-<?php
-declare(strict_types=1);
-
-namespace App\Domain;
-
-use InvalidArgumentException;
-
 class Email
 {
     private string $email;
@@ -71,50 +72,34 @@ class Email
         return new self($email)
     }
 
-    public function value(): string
-    {
-        return $this->email;
-    }
-
     public function __toString(): string
     {
-        return $this->value();
+        return $this->$email;
     }
 }
 ```
 
-En un determinado servicio verificamos que el dominio del correo electrónico del usuario se encuentra dentro de la lista de dominios beneficiados de este tratamiento especial.
+En un momento dado nos puede interesar saber si un empleado tiene acceso a un beneficio concreto, cosa que vamos a controlar obteniendo la lista de dominios corporativos que lo ofrecen. Podríamos hacerlo de esta manera:
 
 ```php
-<?php
-declare(strict_types=1);
-
-namespace App\Domain;
-
-class OfferPromotion
+class CanSeeBenefit
 {
-    public function applyTo(Order $order)
+    public function byCorporateEmail(Email $email)
     {
-        [, $domain] = explode('@', $order->customerEmail());
+        [, $domain] = explode('@', (string)$email);
 
-        if (in_array($domain, $this->getPromotionDomains->execute(), true)) {
-            $order->applyPromotion($this);
+        if (!in_array($domain, $this->getBenefitDomains->execute(), true)) {
+            return false;
         }
+        
+        return true
     }
 }
 ```
 
-El problema aquí es que el servicio tiene que ocuparse de obtener el dominio de la dirección de correo, cosa que no tendría que ser de su incumbencia. La clase `Email` nos está pidiendo a gritos convertirse en la experta en calcular la parte del dominio del correo:
+Como se puede ver, estamos pidiendo su valor a `$email` para poder extraer el dominio y compararlo con la lista de dominios. Por definición, sabemos que un email se compone de un nombre de usuario y un dominio, así que lo lógico sería preguntarle a `$email` por su dominio y no calcularlo fuera de él.
 
 ```php
-<?php
-<?php
-declare(strict_types=1);
-
-namespace App\Domain;
-
-use InvalidArgumentException;
-
 class Email
 {
     private string $email;
@@ -139,35 +124,141 @@ class Email
         return $domain;
     }
 
-    public function value(): string
-    {
-        return $this->email;
-    }
-
     public function __toString(): string
     {
-        return $this->value();
+        return $this->$email;
     }
 }
 ```
 
-Nos basta con esto para hacer más expresivo nuestro servicio, pero aún podemos hacerlo mejor:
+Este es un primer paso para trasladar el conocimiento al lugar donde mejor se puede usar.
 
 ```php
-<?php
-declare(strict_types=1);
-
-namespace App\Domain;
-
-class OfferPromotion
+class CanSeeBenefit
 {
-    public function applyTo(Order $order)
+    public function byCorporateEmail(Email $email)
     {
-        $email = $order->customer()->email();
-
-        if (in_array($email->domain(), $this->getPromotionDomains->execute(), true)) {
-            $order->applyPromotion($this);
+        if (!in_array($email->domain(), $this->getBenefitDomains->execute(), true)) {
+            return false;
         }
+        
+        return true
+    }
+}
+```
+
+Pero en el fondo esto no soluciona completamente el problema. Ahora podemos obtener el dominio de un email y, aunque se obtenga de un cálculo, no deja de ser el acceso a una propiedad. Cierto es que lo hemos implementado de tal forma que necesitamos calcular el dominio, pero podría no ser así. Mira, por ejemplo, esta versión:
+
+```php
+class Email
+{
+    private string $username;
+    private string $domain;
+
+    private function __construct(string $username, string $domain)
+    {
+        $this->username = $username;
+        $this->domain = $domain;
+    }
+
+    public static function valid(string $email): self
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException(sprintf('%s is not a valid email.', $email));
+        }
+
+        [$username, $domain] = explode('@', $email);
+        return new self($username, $domain);
+    }
+
+    public function domain(): string
+    {
+        return $this->domain;
+    }
+
+    public function __toString(): string
+    {
+        return $this->username . '@' . $this->domain;
+    }
+}
+```
+
+Entonces, ¿qué podríamos hacer? Pues la respuesta es invertir la cuestión, En lugar de extraer si el dominio del Email para mirar si está en la lista que tenemos, lo suyo es pasarle la lista para que nos diga si su dominio está en ella:
+
+```php
+class Email
+{
+    private string $username;
+    private string $domain;
+
+    private function __construct(string $username, string $domain)
+    {
+        $this->username = $username;
+        $this->domain = $domain;
+    }
+
+    public static function valid(string $email): self
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException(sprintf('%s is not a valid email.', $email));
+        }
+
+        [$username, $domain] = explode('@', $email);
+        return new self($username, $domain);
+    }
+
+    public function belongsToOneOfThisDomains(array $domains): bool
+    {
+        return in_array($this->domain, $domains, true);
+    }
+
+    public function __toString(): string
+    {
+        return $this->username . '@' . $this->domain;
+    }
+}
+```
+
+Ahora podemos usarlo así:
+
+```php
+class CanSeeBenefit
+{
+    public function byCorporateEmail(Email $email)
+    {
+        return $email->belongsToOneOfThisDomains($this->getBenefitDomains->execute());
+    }
+}
+```
+
+Con este cambio resulta que `Email` ya no tiene que mostrar ninguna de sus propiedades. Esto nos da libertad para cambiar su implementación sin tener que cambiar el código que lo usa. Y, por otro lado, expone comportamiento que puede ser usado por otros objetos interesados.
+
+### Quien se ha de encargar de construir un objeto
+
+Este patrón se llama _Creator_ y nos dice que la responsabilidad de crear un objeto debe recaer en aquel que tenga la información necesaria para hacerlo, o bien que coleccione o agrupe los objetos que se van a crear.
+
+El ejemplo paradigmático de este patrón es el de un objeto factura y sus líneas. La responsabilidad de crear una línea de factura debería recaer en la propia factura, ya que aunque no tenga la información necesaria para crearla, sí que agrupa las líneas de factura. De hecho, las líneas de factura no tienen sentido fuera de una factura.  
+
+```php
+class Invoice
+{
+    private array $lines = [];
+
+    public function addLine(string $description, float $amount): void
+    {
+        $this->lines[] = new InvoiceLine($description, $amount);
+    }
+}
+
+class InvoiceLine
+{
+    private string $description;
+    private float $amount;
+
+    public function __construct(string $description, float $amount)
+    {
+        $this->description = $description;
+        $this->amount = $amount;
     }
 }
 ```
