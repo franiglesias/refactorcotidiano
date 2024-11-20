@@ -14,7 +14,7 @@ En esta revisión, hemos dividido este capítulo en dos a fin de tratar de forma
 
 La traducción de este enunciado a español sería algo así como "Pide, no preguntes". La idea de fondo de este principio es que cuando queremos modificar un objeto basándose su propio estado, no es buena idea preguntarle por su estado (*ask*), hacer el cálculo y cambiar su estado si fuera preciso. En su lugar, lo propio sería encapsular ese proceso en un método del propio objeto y decirle (*tell*) que lo realice él mismo.
 
-Dicho en otras palabras: cada objeto debe ser responsable de su estado representado por sus propiedades internas, manteniéndolo oculto a los demás objetos, que solo conocerán su interfaz pública. En consecuencia, las relaciones entre los objetos deben producirse siempre mediante llamadas a métodos, evitando el acceso directo a las propiedades internas de otros objetos.
+Dicho en otras palabras: cada objeto es responsable de su estado representado por sus propiedades internas, y lo mantiene oculto a los demás objetos, que solo conocerán su interfaz pública. Este principio se conoce como _Information hiding_. Consecuentemente, las relaciones entre los objetos deben producirse siempre mediante llamadas a métodos, evitando el acceso directo a las propiedades internas de otros objetos.
 
 Supongamos que tenemos una clase `Square` que representa un cuadrado y queremos poder calcular su área:
 
