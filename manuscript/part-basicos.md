@@ -1,1 +1,3 @@
 -# Básicos de limpieza de código
+
+En esta primera parte nos centraremos en conceptos básicos que nos ayudan a organizar y hacer más entendible el código. No buscan tanto hacer un rediseño del mismo, como mejorar su legibilidad y mantenibilidad. Al estar más ordenado y los conceptos mejor identificados, será más fácil hacer cambios y corregir errores, pero también será más fácil descubrir patrones con los que propiciar cambios en el diseño.

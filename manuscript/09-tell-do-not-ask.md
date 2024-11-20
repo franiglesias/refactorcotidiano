@@ -150,6 +150,8 @@ class AreaCalculator
 
 En este tipo de situaciones es donde el principio *Tell, Don't Ask* nos puede ayudar. En lugar de preguntar a los objetos por su estado y calcular el área en otro lugar, podemos pedirles que lo hagan ellos mismos. El área es una propiedad de las figuras geométricas y cada una de ellas tiene acceso a los datos necesarios para calcularla. Por tanto, el cálculo del área debería estar en la clase de cada figura.
 
+Aquí tenemos el cuadrado:
+
 ```php
 class Square
 {
@@ -171,6 +173,9 @@ class Square
     }
 }
 ```
+
+El triángulo:
+
 ```php
 class Triangle
 {
@@ -199,6 +204,9 @@ class Triangle
     }
 }
 ```
+
+Y el círculo:
+
 ```php
 class Circle
 {
@@ -221,7 +229,7 @@ class Circle
 }
 ```
 
-Puesto que ahora cada figura sabe cómo calcular su área, `AreaCalculator` se simplifica. Vamos a hacerlo por pasos. En el primero nos limitamos a reemplazar el cálculo del área por el método `area` de cada figura. Así quedan tras la introducción del principio *Tell, Don't Ask* a nuestro problema.
+Puesto que ahora cada figura sabe cómo calcular su área, `AreaCalculator` se simplifica. Vamos a hacerlo por pasos y así entender mejor cómo cambian las cosas cuando dejamos de preocuparnos por las propiedades de los objetos y nos centramos en las cosas que les podemos pedir que hagan por nosotras. En el primer paso, nos limitamos a reemplazar el cálculo del área por el método `area` de cada figura. Así quedan tras la introducción del principio *Tell, Don't Ask* a nuestro problema.
 
 ```php
 class AreaCalculator
@@ -245,7 +253,7 @@ class AreaCalculator
 
 ## Polimorfismo
 
-Bien, esto tiene otra pinta. Sin embargo, seguimos preguntándole cosas a las figuras geométricas. En este caso, preguntamos si son instancias de `Square`, `Triangle` o `Circle`, y es obvio que la sucesión de `if` es redundante porque en último término les pedimos que hagan lo mismo. Dado que cada figura expone un método `area`, podemos asumir que todas ellas son capaces de responder al mismo mensaje. Por tanto, simplifiquemos `AreaCalculator`:
+Bien, esto tiene otra pinta. Sin embargo, seguimos preguntándole cosas a las figuras geométricas. En este caso, preguntamos si son instancias de `Square`, `Triangle` o `Circle`, que es básicamente preguntarles por una propiedad, y es obvio que la sucesión de `if` es redundante porque en último les estamos pidiendo que hagan lo mismo, aunque cada una lo resuelva de forma diferente. Dado que cada figura expone un método `area`, podemos asumir que todas ellas son capaces de responder al mismo mensaje. Por tanto, simplifiquemos `AreaCalculator`:
 
 ```php
 class AreaCalculator
@@ -256,11 +264,11 @@ class AreaCalculator
     }
 }
 ```
-Y aquí podemos ver el principio *Tell, Don't Ask* en acción. En lugar de preguntar a las figuras geométricas por su estado y calcular el área en otro lugar, simplemente les pedimos que lo hagan ellas mismas independientemente de su tipo.
+Y aquí podemos ver el principio *Tell, Don't Ask* en acción. En lugar de preguntar a las figuras geométricas por su estado y calcular el área en otro lugar, les pedimos que lo hagan ellas mismas independientemente de su tipo. Y lo que antes era un código confuso con montones de líneas, ahora se queda en una sola.
 
-Esta solución es posible gracias al _polimorfismo_. El polimorfismo es una característica de los lenguajes orientados a objetos gracias a la cual podemos enviar el mismo mensaje a diferentes objetos, obteniendo respuestas basándonos en su tipo específico. Esto nos permite evitar tener que preguntar por el tipo de objeto cada vez y actuar en consecuencia.
+Esta solución es posible gracias al _polimorfismo_. El polimorfismo es una característica de los lenguajes orientados a objetos gracias a la cual podemos enviar el mismo mensaje a diferentes objetos, para que cada uno de ellos haga lo que le pedimos a su manera particular, que desconocemos.
 
-El tipo muchas veces viene dado por la clase de los objetos, que es lo que ocurre en nuestro ejemplo, pero en otros casos es una propiedad de una única clase. El problema, en nuestro caso, es que al principio teníamos objetos anémicos a los que no podíamos enviar ningún mensaje. Una vez que hemos aplicado _Tell, don't ask_ y hemos movido el comportamiento a los objetos, nos hemos dado cuenta de que podríamos beneficiarnos del polimorfismo.
+El problema, en nuestro caso, es que al principio teníamos objetos anémicos a los que no podíamos enviar ningún mensaje. Una vez que hemos aplicado _Tell, don't ask_ y hemos movido el comportamiento a los objetos, nos hemos dado cuenta de que podríamos beneficiarnos del polimorfismo.
 
 Por otro lado, nos hemos aprovechado de la posibilidad de PHP, y de otros lenguajes, de hacer "duck typing", gracias a lo cual el método `calculate` no requiere tipado. En lugar de preguntar por el tipo de objeto, simplemente le pedimos que haga algo. Si el objeto sabe hacerlo, lo hará. Si no, lanzará una excepción. En algunos lenguajes de programación tendríamos que haber declarado el tipo de `$shape` en el método `calculate` para saber que se puede llamar a `area`.
 
@@ -340,5 +348,162 @@ class Circle implements Shape
 }
 ```
 
+## Otros escondites del polimorfismo
+
+El tipo muchas veces viene dado por la clase de los objetos, que es lo que ocurre en nuestro ejemplo, pero en otros casos es una propiedad de una única clase.
+
+Imagina que, en lugar del `AreaCalculator` del ejemplo anterior, tuviésemos algo así. Expresamos el concepto de _forma geométrica_ mediante una clase `Shape` que puede decirnos su superficie. Sin embargo, cada vez que se lo pedimos tiene que preguntarse "¿de qué tipo soy?", para saber cómo calcularla. No solo, sino que además tiene que mantener datos internos que no le corresponden, como el lado de un cuadrado, la base y la altura de un triángulo o el radio de un círculo.
+
+```php
+class Shape
+{
+    private $type;
+    private $data;
+
+    public function __construct($type, $data)
+    {
+        $this->type = $type;
+        $this->data = $data;
+    }
+
+    public function area(): float
+    {
+        switch ($this->type) {
+            case 'square':
+                return $this->data['side'] ** 2;
+            case 'triangle':
+                return ($this->data['base'] * $this->data['height']) / 2;
+            case 'circle':
+                return pi() * $this->data['radius'] ** 2;
+            default:
+                throw new Exception("Invalid shape type");
+        }
+    }
+}
+```
+
+Se trata de un caso similar al anterior, pero en lugar de preguntar por el tipo de objeto, que es siempre el mismo, preguntamos por una propiedad interna del objeto. En este caso, el polimorfismo se esconde en la propiedad `type` de la clase `Shape`. La solución es la misma: mover el comportamiento a objetos especializados y dejar que ellos se encarguen de calcular su área.
+
+Para hacer este cambio de manera progresiva podríamos empezar por introducir un método factoría. A continuación podríamos reemplazar los usos de `new Shape()` con `Shape::create()`.
+
+```php
+class Shape
+{
+    private $type;
+    private $data;
+
+    private function __construct($type, $data)
+    {
+        $this->type = $type;
+        $this->data = $data;
+    }
+
+    public static function create($type, $data): Shape
+    {
+        return new self($type, $data);
+    }
+    
+     public function area(): float
+    {
+        switch ($this->type) {
+            case 'square':
+                return $this->data['side'] ** 2;
+            case 'triangle':
+                return ($this->data['base'] * $this->data['height']) / 2;
+            case 'circle':
+                return pi() * $this->data['radius'] ** 2;
+            default:
+                throw new Exception("Invalid shape type");
+        }
+    }
+}
+```
+
+A continuación, podríamos crear una clase para cada tipo de forma geométrica y mover el cálculo del área a cada una de ellas. Estas clases heredan extienden `Shape` y sobrescriben el método `area`. En este caso, podemos considerar que cada una de ellas es una especialización, pero podríamos hacerlo también con una interfaz común. 
+
+```php
+class Square extends Shape
+{
+    private $side;
+
+    public function __construct($side)
+    {
+        $this->side = $side;
+    }
+
+    public function area(): float
+    {
+        return $this->side**2;
+    }
+}
+```
+
+```php
+class Triangle extends Shape
+{
+    private $base;
+    private $height;
+
+    public function __construct($base, $height)
+    {
+        $this->base = $base;
+        $this->height = $height;
+    }
+
+    public function area(): float
+    {
+        return ($this->base * $this->height) / 2;
+    }
+}
+```
+
+```php
+class Circle extends Shape
+{
+    private $radius;
+
+    public function __construct($radius)
+    {
+        $this->radius = $radius;
+    }
+
+    public function area(): float
+    {
+        return pi() * $this->radius**2;
+    }
+}
+```
+
+Ahora, en el constructor estático `create` de `Shape`, podemos decidir qué tipo de objeto devolver en función del tipo de forma geométrica que queremos crear.
+
+```php
+class Shape
+{
+    public static function create($type, $data): Shape
+    {
+        switch ($type) {
+            case 'square':
+                return new Square($data['side']);
+            case 'triangle':
+                return new Triangle($data['base'], $data['height']);
+            case 'circle':
+                return new Circle($data['radius']);
+            default:
+                throw new Exception("Invalid shape type");
+        }
+    }
+    
+    public function area(): float
+    {
+        throw new Exception("Not implemented");
+    }
+}
+```
+
+Con este cambio, el código que consume `Shape`, recibirá un objeto del tipo correcto, y no tendrá que preocuparse por la forma geométrica que está manejando. Solo tendrá que llamar al método `area` y el objeto se encargará de calcularla.
+
 ## Resumen del capítulo
 
+El principio *Tell, Don't Ask* nos ayuda a mejorar la encapsulación de nuestros objetos. En lugar de preguntarles por su estado y calcular el resultado en otro lugar, les pedimos que realicen la operación ellos mismos. De esta forma, cada objeto es responsable de su estado y de las operaciones que se pueden realizar con él. 
+
+Por otro lado, la aplicación del principio, puede llevarnos a describir oportunidades para aplicar otros patrones beneficios. Uno de ellos, es el polimorfismo, que nos permite enviar el mismo mensaje a diferentes objetos, para que cada uno de ellos lo interprete de la forma que le corresponda. Gracias al polimorfismo el código se simplifica al organizarlo en objetos pequeños y muy especializados, que son fáciles de entender y de testear. Por otro lado, eso nos permite llevar las decisiones a las factorías, que se encargan de seleccionar el objeto adecuado para cada situación.
