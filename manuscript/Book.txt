@@ -12,5 +12,6 @@
 2.2-tell-do-not-ask.md
 2.3-demeter.md
 2.4-polimorfismo.md
+2.5-patron-state.md
 9.0-anexos.md
 9.9-lecturas.md
