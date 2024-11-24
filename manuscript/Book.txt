@@ -6,7 +6,7 @@
 1.3-escalares.md
 1.4-condicionales.md
 1.5-return.md
-1.6-enumerables.md
+1.6-colecciones.md
 2.0-part-rediseno.md
 2.1-conocimiento.md
 2.2-tell-do-not-ask.md
